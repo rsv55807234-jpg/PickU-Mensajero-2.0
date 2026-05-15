@@ -12,7 +12,7 @@ const MapComponent = dynamic(() => import('../components/MapComponent'), {
 import { Car, ChevronRight, UserPlus, LogIn, ShieldCheck, MapPin, Bike, User, Phone, Mail, Lock, ChevronLeft, Zap, Truck } from 'lucide-react';
 import Link from 'next/link';
 
-type ViewState = 'login' | 'register_client' | 'register_mensajero' | 'client_dashboard' | 'profile';
+type ViewState = 'login' | 'register_client' | 'register_mensajero' | 'client_dashboard' | 'mensajero_dashboard' | 'profile';
 
 export default function PickUMensajeroApp() {
   const [view, setView] = useState<ViewState>('login');
@@ -30,6 +30,14 @@ export default function PickUMensajeroApp() {
   const [route, setRoute] = useState<[number, number][] | null>(null);
   const [distance, setDistance] = useState<number>(0);
   const [selectingMode, setSelectingMode] = useState<'pickup' | 'destination' | null>(null);
+  const [isOnline, setIsOnline] = useState(true);
+  const [activeOrder, setActiveOrder] = useState<any>(null);
+
+  const availableOrders = [
+    { id: 1, pickup: 'Calle 72 con Av. 15', destination: 'C.C. Sambil', distance: '3.2 km', price: '$4.50', time: '5 min ago' },
+    { id: 2, pickup: 'Indio Mara', destination: 'Plaza de la República', distance: '1.8 km', price: '$2.80', time: '2 min ago' },
+    { id: 3, pickup: 'Sector La Lago', destination: 'Hospital Universitario', distance: '5.4 km', price: '$7.20', time: '8 min ago' },
+  ];
 
   // Fetch real route from OSRM
   React.useEffect(() => {
@@ -526,6 +534,168 @@ export default function PickUMensajeroApp() {
     </motion.div>
   );
 
+  const renderMensajeroDashboard = () => (
+    <motion.div 
+      key="mensajero_dashboard"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="flex-1 flex flex-col relative overflow-hidden"
+    >
+      {/* Mensajero Header */}
+      <div className="p-6 flex flex-col gap-4 bg-white shadow-sm z-20">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <motion.button 
+              whileTap={{ scale: 0.9 }}
+              onClick={() => setView('profile')}
+              className="w-12 h-12 rounded-2xl overflow-hidden border-2 border-yellow-400 p-0.5"
+            >
+              <img src={userProfile.photo} alt="Avatar" className="w-full h-full object-cover rounded-xl" />
+            </motion.button>
+            <div>
+              <p className="text-[10px] font-black uppercase text-neutral-400 tracking-widest italic">Hola, {userProfile.name.split(' ')[0]}</p>
+              <div className="flex items-center gap-2">
+                <div className={`w-2 h-2 rounded-full ${isOnline ? 'bg-green-500 animate-pulse' : 'bg-neutral-300'}`}></div>
+                <span className="text-xs font-black uppercase tracking-tight">{isOnline ? 'Conectado' : 'Desconectado'}</span>
+              </div>
+            </div>
+          </div>
+          
+          <button 
+            onClick={() => setIsOnline(!isOnline)}
+            className={`px-4 py-2 rounded-full font-black text-[10px] uppercase tracking-widest transition-all shadow-lg ${
+              isOnline ? 'bg-red-500 text-white' : 'bg-green-500 text-white'
+            }`}
+          >
+            {isOnline ? 'Desconectar' : 'Conectar'}
+          </button>
+        </div>
+
+        {/* Stats Row */}
+        <div className="grid grid-cols-2 gap-3">
+          <div className="bg-neutral-900 p-4 rounded-3xl text-white">
+            <p className="text-[8px] font-black uppercase text-white/40 tracking-widest leading-none mb-1">Ganancias Hoy</p>
+            <p className="text-xl font-black italic tracking-tighter">$24.50</p>
+          </div>
+          <div className="bg-yellow-400 p-4 rounded-3xl text-black">
+            <p className="text-[8px] font-black uppercase text-black/40 tracking-widest leading-none mb-1">Viajes Hoy</p>
+            <p className="text-xl font-black italic tracking-tighter">8</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content Area */}
+      <div className="flex-1 bg-neutral-50 p-6 overflow-y-auto pb-24">
+        {activeOrder ? (
+          <div className="space-y-4">
+            <h4 className="text-[10px] font-black uppercase text-neutral-400 tracking-[0.2em] italic mb-2">Viaje en Curso</h4>
+            <div className="bg-white p-6 rounded-[2.5rem] shadow-xl border-2 border-yellow-400 flex flex-col gap-6 relative overflow-hidden">
+               <div className="absolute top-0 right-0 p-4">
+                 <div className="bg-yellow-400 text-black px-3 py-1 rounded-full text-[9px] font-black uppercase italic tracking-widest">Activo</div>
+               </div>
+               
+               <div className="flex flex-col gap-4">
+                 <div className="flex items-start gap-4">
+                   <div className="w-3 h-3 bg-neutral-900 rounded-full mt-1 shrink-0"></div>
+                   <div>
+                     <p className="text-[9px] font-black uppercase text-neutral-400 tracking-widest">Recogida</p>
+                     <p className="text-sm font-black text-neutral-900">{activeOrder.pickup}</p>
+                   </div>
+                 </div>
+                 <div className="w-0.5 h-6 bg-neutral-100 ml-[5px]"></div>
+                 <div className="flex items-start gap-4">
+                   <div className="w-3 h-3 bg-yellow-400 rounded-full mt-1 shrink-0"></div>
+                   <div>
+                     <p className="text-[9px] font-black uppercase text-neutral-400 tracking-widest">Destino</p>
+                     <p className="text-sm font-black text-neutral-900">{activeOrder.destination}</p>
+                   </div>
+                 </div>
+               </div>
+
+               <div className="flex items-center justify-between pt-4 border-t border-neutral-50">
+                 <div>
+                   <p className="text-xs font-black text-neutral-900 italic tracking-tight">{activeOrder.price}</p>
+                   <p className="text-[9px] text-neutral-400 font-bold uppercase tracking-tighter">{activeOrder.distance}</p>
+                 </div>
+                 <button 
+                  onClick={() => setActiveOrder(null)}
+                  className="bg-black text-white px-6 py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-lg"
+                 >
+                   Completar Viaje
+                 </button>
+               </div>
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between mb-2">
+              <h4 className="text-[10px] font-black uppercase text-neutral-400 tracking-[0.2em] italic">Solicitudes Cercanas</h4>
+              <button className="text-yellow-600 font-black text-[10px] uppercase tracking-widest italic flex items-center gap-1">
+                <Zap size={12} fill="currentColor" /> Live
+              </button>
+            </div>
+            
+            {!isOnline ? (
+              <div className="bg-white/50 border-2 border-dashed border-neutral-200 rounded-[2.5rem] p-12 flex flex-col items-center justify-center text-center gap-4">
+                <div className="bg-neutral-100 p-6 rounded-full text-neutral-300">
+                  <Zap size={40} />
+                </div>
+                <div>
+                  <p className="font-black text-neutral-900 italic tracking-tight">Estás Desconectado</p>
+                  <p className="text-[10px] text-neutral-400 font-bold uppercase tracking-widest mt-1">Conéctate para recibir pedidos</p>
+                </div>
+              </div>
+            ) : (
+              availableOrders.map((order) => (
+                <motion.div 
+                  key={order.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="bg-white p-5 rounded-[2rem] shadow-sm border border-neutral-100 flex flex-col gap-4 hover:shadow-md transition-all group"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="bg-neutral-50 px-2.5 py-1 rounded-lg text-[9px] font-bold text-neutral-500 uppercase tracking-tighter italic">{order.time}</div>
+                      <div className="bg-yellow-400/10 px-2.5 py-1 rounded-lg text-[9px] font-black text-yellow-700 uppercase tracking-tighter italic">{order.distance}</div>
+                    </div>
+                    <span className="text-sm font-black text-neutral-900 italic tracking-tight">{order.price}</span>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-3">
+                      <MapPin size={14} className="text-neutral-300" />
+                      <p className="text-xs font-bold text-neutral-600 truncate">{order.pickup} → {order.destination}</p>
+                    </div>
+                  </div>
+
+                  <button 
+                    onClick={() => setActiveOrder(order)}
+                    className="w-full bg-neutral-900 text-white py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all hover:bg-black group-hover:bg-yellow-400 group-hover:text-black"
+                  >
+                    Aceptar Solicitud
+                  </button>
+                </motion.div>
+              ))
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Bottom Nav for Mensajero */}
+      <div className="absolute bottom-6 left-6 right-6 z-30 flex justify-center">
+        <div className="bg-black/90 backdrop-blur-xl px-2 py-2 rounded-[2rem] shadow-2xl flex items-center gap-2 border border-white/10">
+          <button className="bg-yellow-400 text-black px-6 py-3 rounded-2xl flex items-center gap-2">
+             <Zap size={18} fill="currentColor" />
+             <span className="font-black text-[10px] uppercase tracking-widest italic">Ruta</span>
+          </button>
+          <button onClick={() => setView('profile')} className="text-white/40 px-6 py-3 rounded-2xl hover:text-white transition-colors">
+             <User size={18} />
+          </button>
+        </div>
+      </div>
+    </motion.div>
+  );
+
   const renderLoginForm = () => (
     <motion.div 
       key="login"
@@ -566,6 +736,14 @@ export default function PickUMensajeroApp() {
             className="w-full bg-black text-white py-4 rounded-2xl font-bold text-sm shadow-lg flex items-center justify-center gap-2 mt-2 hover:bg-neutral-800 transition-colors"
           >
             <LogIn size={18} /> Entrar
+          </motion.button>
+          
+          <motion.button 
+            whileTap={{ scale: 0.98 }}
+            onClick={() => setView('mensajero_dashboard')}
+            className="w-full bg-yellow-400 text-black py-4 rounded-2xl font-bold text-sm shadow-lg flex items-center justify-center gap-2 mt-2 hover:bg-yellow-500 transition-colors"
+          >
+            <Car size={18} /> Entrar como Mensajero
           </motion.button>
           
           <div className="text-center">
@@ -769,6 +947,7 @@ export default function PickUMensajeroApp() {
           {view === 'register_client' && renderRegisterClient()}
           {view === 'register_mensajero' && renderRegisterMensajero()}
           {view === 'client_dashboard' && renderClientDashboard()}
+          {view === 'mensajero_dashboard' && renderMensajeroDashboard()}
           {view === 'profile' && renderProfile()}
         </AnimatePresence>
 
