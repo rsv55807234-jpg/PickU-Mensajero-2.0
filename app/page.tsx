@@ -1,7 +1,14 @@
 'use client';
 
 import React, { useState } from 'react';
+import dynamic from 'next/dynamic';
 import { motion, AnimatePresence } from 'motion/react';
+
+// Carga dinámica del mapa para evitar errores de SSR
+const MapComponent = dynamic(() => import('../components/MapComponent'), { 
+  ssr: false,
+  loading: () => <div className="w-full h-full bg-neutral-200 animate-pulse flex items-center justify-center text-neutral-400 font-black italic">Cargando Mapa...</div>
+});
 import { Car, ChevronRight, UserPlus, LogIn, ShieldCheck, MapPin, Bike, User, Phone, Mail, Lock, ChevronLeft, Zap, Truck } from 'lucide-react';
 import Link from 'next/link';
 
@@ -18,6 +25,18 @@ export default function PickUMensajeroApp() {
   const [vehicle, setVehicle] = useState<string | null>(null);
   const [selectedService, setSelectedService] = useState<string | null>(null);
   const [bookingStep, setBookingStep] = useState<'home' | 'search' | 'confirm' | 'tracking'>('home');
+  const [pickup, setPickup] = useState<[number, number] | null>(null);
+  const [destination, setDestination] = useState<[number, number] | null>(null);
+  const [selectingMode, setSelectingMode] = useState<'pickup' | 'destination' | null>(null);
+
+  const handleLocationSelect = (lat: number, lng: number) => {
+    if (selectingMode === 'pickup') {
+      setPickup([lat, lng]);
+    } else if (selectingMode === 'destination') {
+      setDestination([lat, lng]);
+    }
+    setSelectingMode(null);
+  };
 
   const renderClientDashboard = () => (
     <motion.div 
@@ -46,38 +65,35 @@ export default function PickUMensajeroApp() {
         </div>
       </div>
 
-      {/* Simulated Interactive Map */}
-      <div className="absolute inset-0 bg-neutral-200">
-        <img 
-          src="https://picsum.photos/seed/map/800/1200" 
-          className="w-full h-full object-cover opacity-60 grayscale-[0.2]"
-          alt="Map Simulation"
+      {/* Real Interactive Map via OpenStreetMap & Leaflet */}
+      <div className="absolute inset-0 bg-neutral-200 z-0">
+        <MapComponent 
+          pickup={pickup}
+          destination={destination}
+          selectingMode={selectingMode}
+          onLocationSelect={handleLocationSelect}
         />
-        {/* Map Markers */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
-          <div className="relative">
-            <div className="w-12 h-12 bg-black/20 rounded-full animate-ping absolute -inset-0"></div>
-            <div className="bg-black p-3 rounded-2xl shadow-2xl relative">
-              <MapPin size={24} className="text-yellow-400" />
-            </div>
-          </div>
-        </div>
         
-        {/* Simulated Nearby Vehicles */}
-        <motion.div 
-          animate={{ x: [0, 20, 0], y: [0, -10, 0] }}
-          transition={{ duration: 4, repeat: Infinity }}
-          className="absolute top-[40%] right-[30%] bg-white p-1.5 rounded-lg shadow-md border border-neutral-100"
-        >
-          <Car size={16} className="text-yellow-500" />
-        </motion.div>
-        <motion.div 
-          animate={{ x: [0, -15, 0], y: [0, 25, 0] }}
-          transition={{ duration: 5, repeat: Infinity }}
-          className="absolute bottom-[30%] left-[25%] bg-white p-1.5 rounded-lg shadow-md border border-neutral-100"
-        >
-          <Bike size={16} className="text-black" />
-        </motion.div>
+        {selectingMode && (
+          <div className="absolute inset-0 z-50 flex items-center justify-center pointer-events-none">
+            <div className="bg-black/80 backdrop-blur-sm text-white px-6 py-3 rounded-2xl shadow-2xl flex items-center gap-3 border border-white/20">
+              <div className="w-2 h-2 bg-yellow-400 rounded-full animate-ping"></div>
+              <span className="font-black text-xs uppercase tracking-widest">
+                Toca el mapa para fijar {selectingMode === 'pickup' ? 'la recogida' : 'el destino'}
+              </span>
+            </div>
+            <motion.div 
+              animate={{ y: [0, -10, 0] }}
+              transition={{ repeat: Infinity, duration: 1.5 }}
+              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-[120%]"
+            >
+              <MapPin size={40} className={selectingMode === 'pickup' ? 'text-yellow-400' : 'text-black'} />
+            </motion.div>
+          </div>
+        )}
+        
+        {/* Overlay for search header space to prevent clicks on map behind UI elements */}
+        <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-white/20 to-transparent pointer-events-none z-10" />
       </div>
 
       {/* Dynamic Bottom Sheet */}
@@ -176,21 +192,49 @@ export default function PickUMensajeroApp() {
               {/* Formulario de Destino */}
               <div className="flex flex-col gap-4 bg-neutral-900 p-6 rounded-[2.5rem] shadow-xl border border-white/10">
                 <div className="relative pb-4 border-b border-white/10">
-                  <div className="flex items-center gap-4">
-                    <div className="w-2.5 h-2.5 bg-yellow-400 rounded-full shadow-[0_0_10px_rgba(250,204,21,0.5)]"></div>
-                    <div className="flex flex-col">
-                      <span className="text-[9px] font-black uppercase text-yellow-400/60 leading-none mb-1">Recogida</span>
-                      <input type="text" value="Ubicación Actual (GPS)" readOnly className="text-sm font-bold text-white/50 outline-none w-full bg-transparent" />
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4 flex-1">
+                      <div className="w-2.5 h-2.5 bg-yellow-400 rounded-full shadow-[0_0_10px_rgba(250,204,21,0.5)]"></div>
+                      <div className="flex flex-col flex-1">
+                        <span className="text-[9px] font-black uppercase text-yellow-400/60 leading-none mb-1">Recogida</span>
+                        <input 
+                          type="text" 
+                          value={pickup ? `${pickup[0].toFixed(4)}, ${pickup[1].toFixed(4)}` : "Ubicación Actual (GPS)"} 
+                          readOnly 
+                          className="text-sm font-bold text-white/50 outline-none w-full bg-transparent" 
+                        />
+                      </div>
+                    </div>
+                    <button 
+                      onClick={() => setSelectingMode('pickup')}
+                      className={`p-2 rounded-xl transition-all ${selectingMode === 'pickup' ? 'bg-yellow-400 text-black' : 'bg-white/5 text-white/40 hover:bg-white/10'}`}
+                    >
+                      <MapPin size={16} />
+                    </button>
+                  </div>
+                  <div className="absolute left-[4px] top-8 bottom-4 w-0.5 bg-white/5"></div>
+                </div>
+
+                <div className="flex items-center justify-between py-2">
+                  <div className="flex items-center gap-4 flex-1">
+                    <div className="w-2.5 h-2.5 bg-white rounded-full"></div>
+                    <div className="flex flex-col flex-1">
+                      <span className="text-[9px] font-black uppercase text-white/40 leading-none mb-1">Destino</span>
+                      <input 
+                        type="text" 
+                        placeholder="Pincha en el mapa" 
+                        value={destination ? `${destination[0].toFixed(4)}, ${destination[1].toFixed(4)}` : ""}
+                        readOnly
+                        className="text-sm font-black text-white outline-none w-full bg-transparent placeholder:text-white/20" 
+                      />
                     </div>
                   </div>
-                  <div className="absolute left-[4px] top-6 bottom-4 w-0.5 bg-white/5"></div>
-                </div>
-                <div className="flex items-center gap-4 py-2">
-                  <div className="w-2.5 h-2.5 bg-white rounded-full"></div>
-                  <div className="flex flex-col w-full">
-                    <span className="text-[9px] font-black uppercase text-white/40 leading-none mb-1">Destino</span>
-                    <input autoFocus type="text" placeholder="¿A dónde enviamos?" className="text-sm font-black text-white outline-none w-full bg-transparent placeholder:text-white/20" />
-                  </div>
+                  <button 
+                    onClick={() => setSelectingMode('destination')}
+                    className={`p-2 rounded-xl transition-all ${selectingMode === 'destination' ? 'bg-yellow-400 text-black' : 'bg-white/5 text-white/40 hover:bg-white/10'}`}
+                  >
+                    <MapPin size={16} />
+                  </button>
                 </div>
               </div>
 
