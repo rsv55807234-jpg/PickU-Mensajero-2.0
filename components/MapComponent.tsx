@@ -89,7 +89,7 @@ export default function MapComponent({
         />
       )}
 
-      {!pickup && !destination && (
+      {!pickup && !destination && !selectingMode && (
         <Marker position={center} icon={pickupIcon}>
           <Popup>Tu ubicación</Popup>
         </Marker>

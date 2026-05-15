@@ -74,10 +74,8 @@ export default function PickUMensajeroApp() {
   const handleLocationSelect = (lat: number, lng: number) => {
     if (selectingMode === 'pickup') {
       setPickup([lat, lng]);
-      setRoute(null); // Clear previous route when starting new selection
     } else if (selectingMode === 'destination') {
       setDestination([lat, lng]);
-      setRoute(null); // Clear previous route
     }
     setSelectingMode(null);
   };
@@ -110,7 +108,7 @@ export default function PickUMensajeroApp() {
       </div>
 
       {/* Real Interactive Map via OpenStreetMap & Leaflet */}
-      <div className="absolute inset-0 bg-neutral-200 z-0">
+      <div className={`absolute inset-0 bg-neutral-200 transition-all duration-500 ${selectingMode ? 'z-50' : 'z-0'}`}>
         <MapComponent 
           pickup={pickup}
           destination={destination}
@@ -118,48 +116,6 @@ export default function PickUMensajeroApp() {
           selectingMode={selectingMode}
           onLocationSelect={handleLocationSelect}
         />
-        
-        {selectingMode && (
-          <div className="absolute inset-0 z-[100] flex flex-col items-center pointer-events-none">
-            {/* Top Control Bar during selection */}
-            <div className="w-full px-6 pt-10 flex flex-col items-center gap-3 pointer-events-none">
-              <motion.button 
-                initial={{ y: -20, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                onClick={(e) => {
-                   e.stopPropagation();
-                   setSelectingMode(null);
-                }}
-                className="bg-black text-white px-8 py-4 rounded-full shadow-2xl flex items-center gap-3 border-2 border-yellow-400 font-black text-[12px] uppercase tracking-widest pointer-events-auto active:scale-95 transition-transform"
-              >
-                <ChevronLeft size={20} className="text-yellow-400" /> Cancelar Selección
-              </motion.button>
-              
-              <motion.div 
-                initial={{ y: -10, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                className="bg-yellow-400 text-black px-5 py-2.5 rounded-2xl shadow-xl flex items-center gap-3 border border-black/10"
-              >
-                <div className="w-2 h-2 bg-black rounded-full animate-pulse"></div>
-                <span className="font-black text-[10px] uppercase tracking-widest">
-                  Toca el mapa para fijar {selectingMode === 'pickup' ? 'recogida' : 'destino'}
-                </span>
-              </motion.div>
-            </div>
-
-            {/* Central Crosshair / Pin Indicator */}
-            <div className="flex-1 flex items-center justify-center">
-              <motion.div 
-                animate={{ y: [0, -10, 0] }}
-                transition={{ repeat: Infinity, duration: 1.5 }}
-                className="relative"
-              >
-                <MapPin size={48} className={selectingMode === 'pickup' ? 'text-yellow-500 fill-black/10' : 'text-black/80'} />
-                <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-1.5 h-1.5 bg-black rounded-full border border-white shadow-sm"></div>
-              </motion.div>
-            </div>
-          </div>
-        )}
         
         {/* Overlay for search header space to prevent clicks on map behind UI elements */}
         <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-white/20 to-transparent pointer-events-none z-10" />
@@ -279,8 +235,10 @@ export default function PickUMensajeroApp() {
                     </div>
                     <button 
                       onClick={() => {
-                        setSelectingMode('pickup');
+                        setPickup(null);
                         setRoute(null);
+                        setDistance(0);
+                        setSelectingMode('pickup');
                       }}
                       className={`p-2 rounded-xl transition-all ${selectingMode === 'pickup' ? 'bg-yellow-400 text-black' : 'bg-white/5 text-white/40 hover:bg-white/10'}`}
                     >
@@ -306,8 +264,10 @@ export default function PickUMensajeroApp() {
                   </div>
                   <button 
                     onClick={() => {
-                      setSelectingMode('destination');
+                      setDestination(null);
                       setRoute(null);
+                      setDistance(0);
+                      setSelectingMode('destination');
                     }}
                     className={`p-2 rounded-xl transition-all ${selectingMode === 'destination' ? 'bg-yellow-400 text-black' : 'bg-white/5 text-white/40 hover:bg-white/10'}`}
                   >
@@ -810,6 +770,50 @@ export default function PickUMensajeroApp() {
           {view === 'register_mensajero' && renderRegisterMensajero()}
           {view === 'client_dashboard' && renderClientDashboard()}
           {view === 'profile' && renderProfile()}
+        </AnimatePresence>
+
+        {/* TOP LEVEL OVERLAY FOR MAP SELECTION - GUARANTEES INTERACTIVITY */}
+        <AnimatePresence>
+          {selectingMode && (
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 z-[5000] flex flex-col items-center pointer-events-none"
+            >
+              {/* Background Dimmer - Just visual shadow at top and bottom */}
+              <div className="absolute inset-0 bg-black/10 pointer-events-none"></div>
+              
+              {/* Top Control Bar during selection - Interactive */}
+              <div className="w-full px-6 pt-12 flex flex-col items-center gap-4 relative z-[5001] pointer-events-none">
+                <button 
+                  onClick={() => setSelectingMode(null)}
+                  className="bg-black text-white px-10 py-5 rounded-full shadow-2xl flex items-center gap-3 border-2 border-yellow-400 font-black text-sm uppercase tracking-widest pointer-events-auto active:scale-95 transition-transform"
+                >
+                  <ChevronLeft size={24} className="text-yellow-400" /> Cancelar Selección
+                </button>
+                
+                <div className="bg-yellow-400 text-black px-6 py-3 rounded-2xl shadow-xl flex items-center gap-3 border border-black/10 pointer-events-auto">
+                  <div className="w-2.5 h-2.5 bg-black rounded-full animate-pulse"></div>
+                  <span className="font-black text-[11px] uppercase tracking-widest">
+                    Paso: fijar {selectingMode === 'pickup' ? 'recogida' : 'destino'}
+                  </span>
+                </div>
+              </div>
+
+              {/* Central Crosshair Indicator - Just visual */}
+              <div className="flex-1 flex items-center justify-center relative pointer-events-none">
+                <motion.div 
+                  animate={{ y: [0, -15, 0] }}
+                  transition={{ repeat: Infinity, duration: 1.5 }}
+                  className="relative"
+                >
+                  <MapPin size={64} className={selectingMode === 'pickup' ? 'text-yellow-500 fill-black/10' : 'text-black/90'} />
+                  <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-3 h-3 bg-black rounded-full border-2 border-white shadow-lg animate-pulse"></div>
+                </motion.div>
+              </div>
+            </motion.div>
+          )}
         </AnimatePresence>
 
         {/* Bottom Trust Tag */}
