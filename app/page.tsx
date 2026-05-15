@@ -543,28 +543,30 @@ export default function PickUMensajeroApp() {
       className="flex-1 flex flex-col relative overflow-hidden"
     >
       {/* Mensajero Header */}
-      <div className="p-6 flex flex-col gap-4 bg-white shadow-sm z-20">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <motion.button 
-              whileTap={{ scale: 0.9 }}
-              onClick={() => setView('profile')}
-              className="w-12 h-12 rounded-2xl overflow-hidden border-2 border-yellow-400 p-0.5"
-            >
-              <img src={userProfile.photo} alt="Avatar" className="w-full h-full object-cover rounded-xl" />
-            </motion.button>
-            <div>
-              <p className="text-[10px] font-black uppercase text-neutral-400 tracking-widest italic">Hola, {userProfile.name.split(' ')[0]}</p>
-              <div className="flex items-center gap-2">
-                <div className={`w-2 h-2 rounded-full ${isOnline ? 'bg-green-500 animate-pulse' : 'bg-neutral-300'}`}></div>
-                <span className="text-xs font-black uppercase tracking-tight">{isOnline ? 'Conectado' : 'Desconectado'}</span>
+      <div className={`px-6 py-2 flex flex-col gap-2 z-20 ${mensajeroTab === 'mapa' ? 'absolute top-0 left-0 right-0 bg-transparent shadow-none' : 'bg-white shadow-sm'}`}>
+        <div className={`flex items-center ${mensajeroTab === 'mapa' ? 'justify-end pt-2' : 'justify-between'}`}>
+          {mensajeroTab !== 'mapa' && (
+            <div className="flex items-center gap-2">
+              <motion.button 
+                whileTap={{ scale: 0.9 }}
+                onClick={() => setView('profile')}
+                className="w-8 h-8 rounded-lg overflow-hidden border-2 border-yellow-400 p-0.5"
+              >
+                <img src={userProfile.photo} alt="Avatar" className="w-full h-full object-cover rounded-md" />
+              </motion.button>
+              <div>
+                <p className="text-[7px] font-black uppercase text-neutral-400 tracking-widest italic leading-none">Hola, {userProfile.name.split(' ')[0]}</p>
+                <div className="flex items-center gap-1.5 mt-0.5">
+                  <div className={`w-1 h-1 rounded-full ${isOnline ? 'bg-green-500 animate-pulse' : 'bg-neutral-300'}`}></div>
+                  <span className="text-[8px] font-black uppercase tracking-tight">{isOnline ? 'On' : 'Off'}</span>
+                </div>
               </div>
             </div>
-          </div>
+          )}
           
           <button 
             onClick={() => setIsOnline(!isOnline)}
-            className={`px-4 py-2 rounded-full font-black text-[10px] uppercase tracking-widest transition-all shadow-lg ${
+            className={`px-3 py-1 rounded-full font-black text-[8px] uppercase tracking-widest transition-all shadow-md ${
               isOnline ? 'bg-red-500 text-white' : 'bg-green-500 text-white'
             }`}
           >
@@ -572,130 +574,102 @@ export default function PickUMensajeroApp() {
           </button>
         </div>
 
-        {/* Stats Row */}
-        <div className="grid grid-cols-2 gap-3">
-          <div className="bg-neutral-900 p-4 rounded-3xl text-white">
-            <p className="text-[8px] font-black uppercase text-white/40 tracking-widest leading-none mb-1">Ganancias Hoy</p>
-            <p className="text-xl font-black italic tracking-tighter">$24.50</p>
-          </div>
-          <div className="bg-yellow-400 p-4 rounded-3xl text-black">
-            <p className="text-[8px] font-black uppercase text-black/40 tracking-widest leading-none mb-1">Viajes Hoy</p>
-            <p className="text-xl font-black italic tracking-tighter">8</p>
-          </div>
-        </div>
+        {/* Stats Row - Only visible in Dashboard tab */}
+        {mensajeroTab === 'dashboard' && (
+          <motion.div 
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            className="grid grid-cols-2 gap-3 overflow-hidden pb-1"
+          >
+            <div className="bg-neutral-900 p-4 rounded-2xl text-white flex flex-col justify-between shadow-lg">
+              <p className="text-[7px] font-black uppercase text-white/40 tracking-[0.2em] mb-2 leading-none text-center">Ganancias Hoy</p>
+              <p className="text-2xl font-black italic tracking-tighter leading-none text-center">$24.50</p>
+            </div>
+            <div className="bg-yellow-400 p-4 rounded-2xl text-black flex flex-col justify-between shadow-lg">
+              <p className="text-[7px] font-black uppercase text-black/40 tracking-[0.2em] mb-2 leading-none text-center">Servicios Hoy</p>
+              <p className="text-2xl font-black italic tracking-tighter leading-none text-center">08</p>
+            </div>
+          </motion.div>
+        )}
       </div>
 
       {/* Main Content Area */}
-      <div className="flex-1 bg-neutral-50 p-6 overflow-y-auto pb-24">
+      <div className={`flex-1 overflow-y-auto ${mensajeroTab === 'mapa' ? 'p-0 pb-0' : 'bg-neutral-50 px-6 pt-2 pb-24'}`}>
         {mensajeroTab === 'dashboard' && (
-          activeOrder ? (
-            <div className="space-y-4">
-              <h4 className="text-[10px] font-black uppercase text-neutral-400 tracking-[0.2em] italic mb-2">Viaje en Curso</h4>
-              <div className="bg-white p-6 rounded-[2.5rem] shadow-xl border-2 border-yellow-400 flex flex-col gap-6 relative overflow-hidden">
-                 <div className="absolute top-0 right-0 p-4">
-                   <div className="bg-yellow-400 text-black px-3 py-1 rounded-full text-[9px] font-black uppercase italic tracking-widest">Activo</div>
-                 </div>
-                 
-                 <div className="flex flex-col gap-4">
-                   <div className="flex items-start gap-4">
-                     <div className="w-3 h-3 bg-neutral-900 rounded-full mt-1 shrink-0"></div>
-                     <div>
-                       <p className="text-[9px] font-black uppercase text-neutral-400 tracking-widest">Recogida</p>
-                       <p className="text-sm font-black text-neutral-900">{activeOrder.pickup}</p>
-                     </div>
-                   </div>
-                   <div className="w-0.5 h-6 bg-neutral-100 ml-[5px]"></div>
-                   <div className="flex items-start gap-4">
-                     <div className="w-3 h-3 bg-yellow-400 rounded-full mt-1 shrink-0"></div>
-                     <div>
-                       <p className="text-[9px] font-black uppercase text-neutral-400 tracking-widest">Destino</p>
-                       <p className="text-sm font-black text-neutral-900">{activeOrder.destination}</p>
-                     </div>
-                   </div>
-                 </div>
-
-                 <div className="flex items-center justify-between pt-4 border-t border-neutral-50">
-                   <div>
-                     <p className="text-xs font-black text-neutral-900 italic tracking-tight">{activeOrder.price}</p>
-                     <p className="text-[9px] text-neutral-400 font-bold uppercase tracking-tighter">{activeOrder.distance}</p>
-                   </div>
-                   <button 
-                    onClick={() => setActiveOrder(null)}
-                    className="bg-black text-white px-6 py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-lg"
-                   >
-                     Completar Viaje
-                   </button>
-                 </div>
-              </div>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              <div className="flex items-center justify-between mb-2">
-                <h4 className="text-[10px] font-black uppercase text-neutral-400 tracking-[0.2em] italic">Solicitudes Cercanas</h4>
-                <button className="text-yellow-600 font-black text-[10px] uppercase tracking-widest italic flex items-center gap-1">
-                  <Zap size={12} fill="currentColor" /> Live
-                </button>
-              </div>
-              
-              {!isOnline ? (
-                <div className="bg-white/50 border-2 border-dashed border-neutral-200 rounded-[2.5rem] p-12 flex flex-col items-center justify-center text-center gap-4">
-                  <div className="bg-neutral-100 p-6 rounded-full text-neutral-300">
-                    <Zap size={40} />
-                  </div>
-                  <div>
-                    <p className="font-black text-neutral-900 italic tracking-tight">Estás Desconectado</p>
-                    <p className="text-[10px] text-neutral-400 font-bold uppercase tracking-widest mt-1">Conéctate para recibir pedidos</p>
-                  </div>
+          <div className="space-y-6 pt-2">
+            {/* Wallet Panel in Dashboard */}
+            <div className="bg-neutral-900 p-6 rounded-[2.5rem] shadow-2xl flex flex-col gap-4 text-white relative overflow-hidden">
+              <div className="absolute -top-8 -right-8 w-32 h-32 bg-yellow-400 rounded-full blur-[60px] opacity-10"></div>
+              <div className="flex items-center justify-between relative z-10">
+                <div>
+                   <p className="text-[8px] font-black uppercase text-white/40 tracking-[0.2em] mb-1 leading-none">Saldo en Billetera</p>
+                   <p className="text-2xl font-black italic tracking-tighter leading-none">$148.20</p>
                 </div>
-              ) : (
-                availableOrders.map((order) => (
-                  <motion.div 
-                    key={order.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="bg-white p-5 rounded-[2rem] shadow-sm border border-neutral-100 flex flex-col gap-4 hover:shadow-md transition-all group"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <div className="bg-neutral-50 px-2.5 py-1 rounded-lg text-[9px] font-bold text-neutral-500 uppercase tracking-tighter italic">{order.time}</div>
-                        <div className="bg-yellow-400/10 px-2.5 py-1 rounded-lg text-[9px] font-black text-yellow-700 uppercase tracking-tighter italic">{order.distance}</div>
-                      </div>
-                      <span className="text-sm font-black text-neutral-900 italic tracking-tight">{order.price}</span>
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-3">
-                        <MapPin size={14} className="text-neutral-300" />
-                        <p className="text-xs font-bold text-neutral-600 truncate">{order.pickup} → {order.destination}</p>
-                      </div>
-                    </div>
-
-                    <button 
-                      onClick={() => setActiveOrder(order)}
-                      className="w-full bg-neutral-900 text-white py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all hover:bg-black group-hover:bg-yellow-400 group-hover:text-black"
-                    >
-                      Aceptar Solicitud
-                    </button>
-                  </motion.div>
-                ))
-              )}
+                <div className="w-10 h-10 bg-yellow-400 rounded-full flex items-center justify-center shadow-lg transform -rotate-12">
+                   <Wallet size={20} className="text-black" />
+                </div>
+              </div>
+              <button 
+                onClick={() => setMensajeroTab('billetera')}
+                className="w-full bg-white/10 text-white py-3 rounded-2xl font-black text-[9px] uppercase tracking-widest hover:bg-white/20 transition-all border border-white/10 backdrop-blur-sm relative z-10"
+              >
+                Gestionar Fondos
+              </button>
             </div>
-          )
+
+            {/* Service History in Dashboard */}
+            <div className="space-y-4">
+               <div className="flex items-center justify-between">
+                  <h4 className="text-[10px] font-black uppercase text-neutral-400 tracking-[0.2em] italic">Historial de Servicios</h4>
+                  <div className="h-[1px] flex-1 bg-neutral-200 ml-4"></div>
+               </div>
+
+               {[
+                 { id: 1, type: 'Entrega Flash', amount: '+$4.50', status: 'Completado', time: 'Hace 20 min' },
+                 { id: 2, type: 'Envío Express', amount: '+$3.20', status: 'Completado', time: 'Hace 1 hora' },
+                 { id: 3, type: 'Mudanza Ligera', amount: '+$12.00', status: 'Completado', time: 'Hoy 10:30 AM' },
+                 { id: 4, type: 'Entrega Médica', amount: '+$5.50', status: 'Completado', time: 'Ayer' },
+               ].map((item) => (
+                 <motion.div 
+                   key={item.id}
+                   whileHover={{ x: 5 }}
+                   className="bg-white p-4 rounded-3xl border border-neutral-100 shadow-sm flex items-center justify-between"
+                 >
+                   <div className="flex items-center gap-3">
+                     <div className="w-8 h-8 bg-neutral-50 rounded-xl flex items-center justify-center text-yellow-500">
+                        <Truck size={14} />
+                     </div>
+                     <div>
+                       <p className="text-[11px] font-black text-neutral-900">{item.type}</p>
+                       <p className="text-[8px] text-neutral-400 font-bold uppercase tracking-tighter">{item.time}</p>
+                     </div>
+                   </div>
+                   <div className="text-right">
+                     <p className="text-xs font-black text-green-500 italic tracking-tight">{item.amount}</p>
+                     <p className="text-[7px] text-neutral-300 font-black uppercase">{item.status}</p>
+                   </div>
+                 </motion.div>
+               ))}
+            </div>
+
+            <button 
+              onClick={() => setIsOnline(!isOnline)}
+              className="w-full border-2 border-dashed border-neutral-200 py-8 rounded-[2.5rem] flex flex-col items-center gap-2 grayscale opacity-50 hover:grayscale-0 hover:opacity-100 transition-all"
+            >
+              <Zap size={24} className="text-yellow-400" />
+              <p className="text-[8px] font-black uppercase tracking-[0.2em] text-neutral-400">Ver nuevas solicitudes</p>
+            </button>
+          </div>
         )}
 
         {mensajeroTab === 'mapa' && (
-          <div className="h-full w-full rounded-[2.5rem] overflow-hidden border-2 border-neutral-200 relative">
+
+          <div className="h-full w-full relative">
              <MapComponent 
               pickup={pickup}
               destination={destination}
               route={route}
              />
-             <div className="absolute top-4 left-4 right-4 z-10">
-                <div className="bg-black/80 backdrop-blur-md text-white p-4 rounded-3xl border border-white/10 shadow-2xl">
-                   <p className="text-[10px] font-black uppercase text-yellow-400 tracking-[0.2em] mb-1">Mapa Interactivo</p>
-                   <p className="text-xs font-bold opacity-70 italic">Explora zonas de alta demanda en tiempo real.</p>
-                </div>
-             </div>
           </div>
         )}
 
@@ -735,44 +709,44 @@ export default function PickUMensajeroApp() {
       </div>
 
       {/* Bottom Nav for Mensajero */}
-      <div className="absolute bottom-6 left-6 right-6 z-30">
-        <div className="bg-black/95 backdrop-blur-2xl p-2 rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.4)] flex items-center justify-between border border-white/10">
+      <div className="absolute bottom-3 left-4 right-4 z-30">
+        <div className="bg-black/95 backdrop-blur-2xl p-1 rounded-[1.8rem] shadow-[0_10px_30px_rgba(0,0,0,0.4)] flex items-center justify-between border border-white/10">
           <button 
             onClick={() => setMensajeroTab('dashboard')}
-            className={`flex-1 flex flex-col items-center gap-1.5 py-3 rounded-[1.5rem] transition-all ${
+            className={`flex-1 flex flex-col items-center gap-0.5 py-1.5 rounded-2xl transition-all ${
               mensajeroTab === 'dashboard' ? 'bg-yellow-400 text-black shadow-lg scale-105' : 'text-white/40 hover:text-white'
             }`}
           >
-             <LayoutDashboard size={18} fill={mensajeroTab === 'dashboard' ? "currentColor" : "none"} />
-             <span className="text-[8px] font-black uppercase tracking-widest">Dashboard</span>
+             <LayoutDashboard size={14} fill={mensajeroTab === 'dashboard' ? "currentColor" : "none"} />
+             <span className="text-[6px] font-black uppercase tracking-widest">Dashboard</span>
           </button>
           
           <button 
             onClick={() => setMensajeroTab('mapa')}
-            className={`flex-1 flex flex-col items-center gap-1.5 py-3 rounded-[1.5rem] transition-all ${
+            className={`flex-1 flex flex-col items-center gap-0.5 py-1.5 rounded-2xl transition-all ${
               mensajeroTab === 'mapa' ? 'bg-yellow-400 text-black shadow-lg scale-105' : 'text-white/40 hover:text-white'
             }`}
           >
-             <Map size={18} fill={mensajeroTab === 'mapa' ? "currentColor" : "none"} />
-             <span className="text-[8px] font-black uppercase tracking-widest">Mapa</span>
+             <Map size={14} fill={mensajeroTab === 'mapa' ? "currentColor" : "none"} />
+             <span className="text-[6px] font-black uppercase tracking-widest">Mapa</span>
           </button>
 
           <button 
             onClick={() => setMensajeroTab('billetera')}
-            className={`flex-1 flex flex-col items-center gap-1.5 py-3 rounded-[1.5rem] transition-all ${
+            className={`flex-1 flex flex-col items-center gap-0.5 py-1.5 rounded-2xl transition-all ${
               mensajeroTab === 'billetera' ? 'bg-yellow-400 text-black shadow-lg scale-105' : 'text-white/40 hover:text-white'
             }`}
           >
-             <Wallet size={18} fill={mensajeroTab === 'billetera' ? "currentColor" : "none"} />
-             <span className="text-[8px] font-black uppercase tracking-widest">Billetera</span>
+             <Wallet size={14} fill={mensajeroTab === 'billetera' ? "currentColor" : "none"} />
+             <span className="text-[6px] font-black uppercase tracking-widest">Billetera</span>
           </button>
 
           <button 
             onClick={() => setView('profile')}
-            className="flex-1 flex flex-col items-center gap-1.5 py-3 rounded-[1.5rem] text-white/40 hover:text-white transition-all"
+            className="flex-1 flex flex-col items-center gap-0.5 py-1.5 rounded-2xl text-white/40 hover:text-white transition-all"
           >
-             <User size={18} />
-             <span className="text-[8px] font-black uppercase tracking-widest">Perfil</span>
+             <User size={14} />
+             <span className="text-[6px] font-black uppercase tracking-widest">Perfil</span>
           </button>
         </div>
       </div>
@@ -1005,24 +979,26 @@ export default function PickUMensajeroApp() {
       {/* Mobile Frame Container - Locked Height */}
       <div className="w-full max-w-[430px] h-full md:h-[92%] md:max-h-[850px] bg-neutral-50 md:rounded-[3rem] shadow-2xl overflow-hidden relative flex flex-col border-x border-neutral-200">
         
-        {/* Brand Header - Minimal for App Feel */}
-        <div className="bg-yellow-400 px-6 pb-6 pt-10 rounded-b-[2rem] shadow-md relative overflow-hidden shrink-0">
-          <motion.div 
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="relative z-10"
-          >
-            <h1 className="text-2xl font-black italic tracking-tighter text-black flex items-center gap-1 leading-none">
-              PickU<span className="w-2 h-2 bg-black rounded-full mt-1"></span>
-            </h1>
-            <div className="flex items-center gap-2 mt-1">
-              <div className="bg-black/10 px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-widest text-black">
-                Mensajero & Fleet
+        {/* Brand Header - Minimal for App Feel - Hidden in Dashboards */}
+        {(view !== 'client_dashboard' && view !== 'mensajero_dashboard') && (
+          <div className="bg-yellow-400 px-6 pb-6 pt-10 rounded-b-[2rem] shadow-md relative overflow-hidden shrink-0">
+            <motion.div 
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="relative z-10"
+            >
+              <h1 className="text-2xl font-black italic tracking-tighter text-black flex items-center gap-1 leading-none">
+                PickU<span className="w-2 h-2 bg-black rounded-full mt-1"></span>
+              </h1>
+              <div className="flex items-center gap-2 mt-1">
+                <div className="bg-black/10 px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-widest text-black">
+                  Mensajero & Fleet
+                </div>
               </div>
-            </div>
-          </motion.div>
-          <Car size={80} className="absolute -right-4 -bottom-4 text-black/5 rotate-12" />
-        </div>
+            </motion.div>
+            <Car size={80} className="absolute -right-4 -bottom-4 text-black/5 rotate-12" />
+          </div>
+        )}
 
         {/* Dynamic Content with AnimatePresence */}
         <AnimatePresence mode="wait">
