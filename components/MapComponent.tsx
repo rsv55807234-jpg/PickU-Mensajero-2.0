@@ -1,6 +1,6 @@
 'use client';
 
-import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, useMapEvents, Polyline } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { useEffect } from 'react';
@@ -25,6 +25,7 @@ interface MapComponentProps {
   zoom?: number;
   pickup?: [number, number] | null;
   destination?: [number, number] | null;
+  route?: [number, number][] | null;
   onLocationSelect?: (lat: number, lng: number) => void;
   selectingMode?: 'pickup' | 'destination' | null;
 }
@@ -45,6 +46,7 @@ export default function MapComponent({
   zoom = 13, 
   pickup, 
   destination,
+  route,
   onLocationSelect,
   selectingMode
 }: MapComponentProps) {
@@ -73,6 +75,18 @@ export default function MapComponent({
         <Marker position={destination} icon={destinationIcon}>
           <Popup>Punto de Destino</Popup>
         </Marker>
+      )}
+
+      {route && route.length > 0 && (
+        <Polyline 
+          positions={route} 
+          pathOptions={{ 
+            color: '#000000', 
+            weight: 5, 
+            opacity: 0.8,
+            lineJoin: 'round'
+          }} 
+        />
       )}
 
       {!pickup && !destination && (

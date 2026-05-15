@@ -27,13 +27,57 @@ export default function PickUMensajeroApp() {
   const [bookingStep, setBookingStep] = useState<'home' | 'search' | 'confirm' | 'tracking'>('home');
   const [pickup, setPickup] = useState<[number, number] | null>(null);
   const [destination, setDestination] = useState<[number, number] | null>(null);
+  const [route, setRoute] = useState<[number, number][] | null>(null);
+  const [distance, setDistance] = useState<number>(0);
   const [selectingMode, setSelectingMode] = useState<'pickup' | 'destination' | null>(null);
+
+  // Fetch real route from OSRM
+  React.useEffect(() => {
+    if (pickup && destination) {
+      const fetchRoute = async () => {
+        try {
+          const response = await fetch(
+            `https://router.project-osrm.org/route/v1/driving/${pickup[1]},${pickup[0]};${destination[1]},${destination[0]}?overview=full&geometries=geojson`
+          );
+          const data = await response.json();
+          if (data.routes && data.routes.length > 0) {
+            const coords = data.routes[0].geometry.coordinates.map((coord: number[]) => [coord[1], coord[0]]);
+            setRoute(coords);
+            setDistance(data.routes[0].distance / 1000); // meters to km
+          }
+        } catch (error) {
+          console.error("Error fetching route:", error);
+          // Fallback to straight line distance if API fails
+          const d = calculateDistanceKm(pickup[0], pickup[1], destination[0], destination[1]);
+          setDistance(d);
+          setRoute([pickup, destination]);
+        }
+      };
+      fetchRoute();
+    } else {
+      setRoute(null);
+      setDistance(0);
+    }
+  }, [pickup, destination]);
+
+  const calculateDistanceKm = (lat1: number, lon1: number, lat2: number, lon2: number) => {
+    const R = 6371; // km
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+  };
 
   const handleLocationSelect = (lat: number, lng: number) => {
     if (selectingMode === 'pickup') {
       setPickup([lat, lng]);
+      setRoute(null); // Clear previous route when starting new selection
     } else if (selectingMode === 'destination') {
       setDestination([lat, lng]);
+      setRoute(null); // Clear previous route
     }
     setSelectingMode(null);
   };
@@ -70,21 +114,25 @@ export default function PickUMensajeroApp() {
         <MapComponent 
           pickup={pickup}
           destination={destination}
+          route={route}
           selectingMode={selectingMode}
           onLocationSelect={handleLocationSelect}
         />
         
         {selectingMode && (
-          <div className="absolute inset-0 z-50 pointer-events-none flex flex-col items-center">
+          <div className="absolute inset-0 z-[100] flex flex-col items-center pointer-events-none">
             {/* Top Control Bar during selection */}
-            <div className="w-full px-6 pt-6 flex flex-col items-center gap-3 pointer-events-none">
+            <div className="w-full px-6 pt-10 flex flex-col items-center gap-3 pointer-events-none">
               <motion.button 
                 initial={{ y: -20, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
-                onClick={() => setSelectingMode(null)}
-                className="bg-black text-white px-6 py-3 rounded-full shadow-2xl flex items-center gap-2 border-2 border-yellow-400 font-black text-[10px] uppercase tracking-widest pointer-events-auto"
+                onClick={(e) => {
+                   e.stopPropagation();
+                   setSelectingMode(null);
+                }}
+                className="bg-black text-white px-8 py-4 rounded-full shadow-2xl flex items-center gap-3 border-2 border-yellow-400 font-black text-[12px] uppercase tracking-widest pointer-events-auto active:scale-95 transition-transform"
               >
-                <ChevronLeft size={16} className="text-yellow-400" /> Cancelar
+                <ChevronLeft size={20} className="text-yellow-400" /> Cancelar Selección
               </motion.button>
               
               <motion.div 
@@ -230,7 +278,10 @@ export default function PickUMensajeroApp() {
                       </div>
                     </div>
                     <button 
-                      onClick={() => setSelectingMode('pickup')}
+                      onClick={() => {
+                        setSelectingMode('pickup');
+                        setRoute(null);
+                      }}
                       className={`p-2 rounded-xl transition-all ${selectingMode === 'pickup' ? 'bg-yellow-400 text-black' : 'bg-white/5 text-white/40 hover:bg-white/10'}`}
                     >
                       <MapPin size={16} />
@@ -254,7 +305,10 @@ export default function PickUMensajeroApp() {
                     </div>
                   </div>
                   <button 
-                    onClick={() => setSelectingMode('destination')}
+                    onClick={() => {
+                      setSelectingMode('destination');
+                      setRoute(null);
+                    }}
                     className={`p-2 rounded-xl transition-all ${selectingMode === 'destination' ? 'bg-yellow-400 text-black' : 'bg-white/5 text-white/40 hover:bg-white/10'}`}
                   >
                     <MapPin size={16} />
@@ -263,37 +317,48 @@ export default function PickUMensajeroApp() {
               </div>
 
             <div className="flex-1 space-y-2 mt-4 text-left">
-              <h4 className="text-[10px] font-black uppercase text-neutral-300 tracking-[0.2em] mb-4">Selecciona Servicio</h4>
+              <div className="flex items-center justify-between mb-4">
+                <h4 className="text-[10px] font-black uppercase text-neutral-300 tracking-[0.2em] italic">Selecciona Servicio</h4>
+                {distance > 0 && (
+                  <div className="flex items-center gap-1.5 bg-neutral-100 px-3 py-1 rounded-full border border-neutral-200 shadow-sm">
+                    <MapPin size={10} className="text-black" />
+                    <span className="text-[9px] font-black text-black uppercase tracking-widest">{distance.toFixed(1)} km</span>
+                  </div>
+                )}
+              </div>
               
               {[
-                { id: 'bici', name: 'Bicicleta', price: '$1.50', eta: '4 min', icon: <Bike size={18} />, color: 'text-green-500' },
-                { id: 'moto', name: 'Moto', price: '$3.20', eta: '2 min', icon: <Zap size={18} />, color: 'text-yellow-500' },
-                { id: 'triciclo', name: 'Triciclo', price: '$5.50', eta: '6 min', icon: <Truck size={18} />, color: 'text-blue-500' }
-              ].map((service, i) => (
-                <div 
-                  key={i} 
-                  onClick={() => setSelectedService(service.id)}
-                  className={`flex items-center justify-between p-4 rounded-2xl border-2 transition-all cursor-pointer ${
-                    selectedService === service.id 
-                    ? 'border-yellow-400 bg-yellow-50/50 shadow-md' 
-                    : 'border-transparent bg-neutral-50 hover:bg-neutral-100'
-                  }`}
-                >
-                  <div className="flex items-center gap-4">
-                    <div className={`p-3 bg-white rounded-xl shadow-sm ${selectedService === service.id ? 'text-yellow-500' : service.color}`}>
-                      {service.icon}
+                { id: 'bici', name: 'Bicicleta', basePrice: 1.00, perKm: 0.50, eta: '4 min', icon: <Bike size={18} />, color: 'text-green-500' },
+                { id: 'moto', name: 'Moto', basePrice: 2.00, perKm: 0.80, eta: '2 min', icon: <Zap size={18} />, color: 'text-yellow-500' },
+                { id: 'triciclo', name: 'Triciclo', basePrice: 4.00, perKm: 1.20, eta: '6 min', icon: <Truck size={18} />, color: 'text-blue-500' }
+              ].map((service, i) => {
+                const totalPrice = distance > 0 ? service.basePrice + (distance * service.perKm) : service.basePrice;
+                return (
+                  <div 
+                    key={i} 
+                    onClick={() => setSelectedService(service.id)}
+                    className={`flex items-center justify-between p-4 rounded-2xl border-2 transition-all cursor-pointer ${
+                      selectedService === service.id 
+                      ? 'border-yellow-400 bg-yellow-50/50 shadow-md' 
+                      : 'border-transparent bg-neutral-50 hover:bg-neutral-100'
+                    }`}
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className={`p-3 bg-white rounded-xl shadow-sm ${selectedService === service.id ? 'text-yellow-500' : service.color}`}>
+                        {service.icon}
+                      </div>
+                      <div>
+                        <p className="text-sm font-black text-neutral-900">{service.name}</p>
+                        <p className="text-[9px] font-bold text-neutral-400 uppercase tracking-tighter italic">{service.eta} • Recogida Express</p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-sm font-black text-neutral-900">{service.name}</p>
-                      <p className="text-[9px] font-bold text-neutral-400 uppercase tracking-tighter italic">{service.eta} • Recogida Express</p>
+                    <div className="text-right">
+                      <p className="text-sm font-black text-neutral-900">${totalPrice.toFixed(2)}</p>
+                      <p className="text-[8px] text-neutral-400 font-bold uppercase underline">Detalles</p>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <p className="text-sm font-black text-neutral-900">{service.price}</p>
-                    <p className="text-[8px] text-neutral-400 font-bold uppercase underline">Detalles</p>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
 
             <motion.button 
