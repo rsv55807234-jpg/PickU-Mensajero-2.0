@@ -1,0 +1,10 @@
+{
+  "name": "PickU Mensajero",
+  "description": "Una réplica fiel y moderna de la plataforma PickU Mensajero, optimizada para una experiencia de aplicación nativa.",
+  "requestFramePermissions": [
+    "geolocation"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
