@@ -43,17 +43,6 @@ export default function PickUMensajeroApp() {
               <span className="text-xs font-bold text-neutral-400">¿A dónde enviamos hoy?</span>
             </div>
           )}
-
-          {bookingStep !== 'home' && (
-            <motion.button 
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              onClick={() => setBookingStep('home')}
-              className="bg-black text-white px-4 py-3 rounded-2xl shadow-xl flex items-center gap-2 text-xs font-bold"
-            >
-              <ChevronLeft size={16} /> Cancelar
-            </motion.button>
-          )}
         </div>
       </div>
 
@@ -144,41 +133,66 @@ export default function PickUMensajeroApp() {
 
         {bookingStep === 'search' && (
           <motion.div 
-            initial={{ y: 300 }}
+            initial={{ y: 400 }}
             animate={{ y: 0 }}
-            exit={{ y: 300 }}
-            className="absolute bottom-0 left-0 right-0 bg-white rounded-t-[2.5rem] shadow-2xl p-8 flex flex-col gap-6 z-30 min-h-[65%]"
+            exit={{ y: 400 }}
+            className="absolute bottom-0 left-0 right-0 z-40 flex flex-col"
           >
-            {/* Native Handle Indicator */}
-            <div className="w-12 h-1.5 bg-neutral-100 rounded-full mx-auto mb-2"></div>
-            
-            {/* Sheet Header with Back Button */}
-            <div className="flex items-center justify-between -mt-2">
+            {/* PESTAÑA FÍSICA PARA REGRESAR - CLARAMENTE VISIBLE SOBRE EL FORMULARIO */}
+            <div className="flex justify-start px-10">
               <motion.button 
                 whileTap={{ scale: 0.95 }}
                 onClick={() => setBookingStep('home')}
-                className="flex items-center gap-2 bg-neutral-50 px-4 py-2.5 rounded-2xl text-black hover:bg-neutral-100 transition-colors font-black text-[10px] uppercase tracking-[0.1em] border border-neutral-100 shadow-sm"
+                className="bg-black text-white px-6 py-4 rounded-t-3xl flex items-center gap-3 shadow-2xl border-t border-x border-white/20 relative z-50 mb-[-2px]"
               >
-                <ChevronLeft size={16} /> Regresar al Mapa
-              </motion.button>
-              <div className="bg-yellow-400/10 px-3 py-1 rounded-full">
-                <span className="text-[9px] font-black text-yellow-600 uppercase tracking-widest italic">Paso 2 de 3</span>
-              </div>
-            </div>
-            
-            <div className="flex flex-col gap-3 mt-2">
-              <div className="relative pb-4 border-b border-neutral-100 mb-2">
-                <div className="flex items-center gap-4">
-                  <div className="w-2.5 h-2.5 border-2 border-neutral-300 rounded-full"></div>
-                  <input type="text" value="Ubicación Actual (GPS)" readOnly className="text-sm font-bold text-neutral-400 outline-none w-full bg-transparent" />
+                <div className="bg-yellow-400 p-1 rounded-lg">
+                  <ChevronLeft size={18} className="text-black stroke-[3px]" />
                 </div>
-                <div className="absolute left-[5px] top-6 bottom-4 w-0.5 bg-neutral-100"></div>
-              </div>
-              <div className="flex items-center gap-4">
-                <div className="w-2.5 h-2.5 bg-black rounded-full"></div>
-                <input autoFocus type="text" placeholder="¿A dónde vas?" className="text-sm font-black text-neutral-900 outline-none w-full bg-transparent placeholder:text-neutral-300" />
-              </div>
+                <span className="font-black text-[12px] uppercase tracking-widest italic">Regresar al Mapa</span>
+              </motion.button>
             </div>
+
+            {/* CUERPO DEL FORMULARIO CON BORDES REDONDEADOS PRONUNCIADOS */}
+            <div className="bg-white rounded-t-[3.5rem] shadow-[0_-25px_60px_-15px_rgba(0,0,0,0.3)] p-8 flex flex-col gap-6 min-h-[60%] overflow-y-auto max-h-[80vh]">
+              {/* Indicador de arrastre */}
+              <div className="w-16 h-1.5 bg-neutral-100 rounded-full mx-auto mb-4"></div>
+              
+              <div className="flex items-center justify-between mb-4">
+                <motion.button 
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => setBookingStep('home')}
+                  className="flex items-center gap-2 text-neutral-400 hover:text-black transition-colors"
+                >
+                  <div className="bg-neutral-100 p-2 rounded-xl">
+                    <ChevronLeft size={20} className="text-black" />
+                  </div>
+                  <span className="font-black text-xs uppercase tracking-widest italic">Regresar</span>
+                </motion.button>
+                <div className="bg-yellow-400/20 px-3 py-1.5 rounded-full border border-yellow-400/30">
+                  <span className="text-[10px] font-black text-yellow-700 uppercase tracking-widest">Paso 2 de 3</span>
+                </div>
+              </div>
+              
+              {/* Formulario de Destino */}
+              <div className="flex flex-col gap-4 bg-neutral-900 p-6 rounded-[2.5rem] shadow-xl border border-white/10">
+                <div className="relative pb-4 border-b border-white/10">
+                  <div className="flex items-center gap-4">
+                    <div className="w-2.5 h-2.5 bg-yellow-400 rounded-full shadow-[0_0_10px_rgba(250,204,21,0.5)]"></div>
+                    <div className="flex flex-col">
+                      <span className="text-[9px] font-black uppercase text-yellow-400/60 leading-none mb-1">Recogida</span>
+                      <input type="text" value="Ubicación Actual (GPS)" readOnly className="text-sm font-bold text-white/50 outline-none w-full bg-transparent" />
+                    </div>
+                  </div>
+                  <div className="absolute left-[4px] top-6 bottom-4 w-0.5 bg-white/5"></div>
+                </div>
+                <div className="flex items-center gap-4 py-2">
+                  <div className="w-2.5 h-2.5 bg-white rounded-full"></div>
+                  <div className="flex flex-col w-full">
+                    <span className="text-[9px] font-black uppercase text-white/40 leading-none mb-1">Destino</span>
+                    <input autoFocus type="text" placeholder="¿A dónde enviamos?" className="text-sm font-black text-white outline-none w-full bg-transparent placeholder:text-white/20" />
+                  </div>
+                </div>
+              </div>
 
             <div className="flex-1 space-y-2 mt-4 text-left">
               <h4 className="text-[10px] font-black uppercase text-neutral-300 tracking-[0.2em] mb-4">Selecciona Servicio</h4>
@@ -226,8 +240,9 @@ export default function PickUMensajeroApp() {
             >
               Confirmar PickU
             </motion.button>
-          </motion.div>
-        )}
+          </div>
+        </motion.div>
+      )}
 
         {bookingStep === 'tracking' && (
           <motion.div 
@@ -636,23 +651,23 @@ export default function PickUMensajeroApp() {
       {/* Mobile Frame Container - Locked Height */}
       <div className="w-full max-w-[430px] h-full md:h-[92%] md:max-h-[850px] bg-neutral-50 md:rounded-[3rem] shadow-2xl overflow-hidden relative flex flex-col border-x border-neutral-200">
         
-        {/* Brand Header - Compact for App Feel */}
-        <div className="bg-yellow-400 px-8 pb-10 pt-16 rounded-b-[2.5rem] shadow-md relative overflow-hidden shrink-0">
+        {/* Brand Header - Minimal for App Feel */}
+        <div className="bg-yellow-400 px-6 pb-6 pt-10 rounded-b-[2rem] shadow-md relative overflow-hidden shrink-0">
           <motion.div 
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             className="relative z-10"
           >
-            <h1 className="text-4xl font-black italic tracking-tighter text-black flex items-center gap-1 leading-none">
-              PickU<span className="w-2.5 h-2.5 bg-black rounded-full mt-2"></span>
+            <h1 className="text-2xl font-black italic tracking-tighter text-black flex items-center gap-1 leading-none">
+              PickU<span className="w-2 h-2 bg-black rounded-full mt-1"></span>
             </h1>
-            <div className="flex items-center gap-2 mt-2">
-              <div className="bg-black/10 px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-widest text-black">
+            <div className="flex items-center gap-2 mt-1">
+              <div className="bg-black/10 px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-widest text-black">
                 Mensajero & Fleet
               </div>
             </div>
           </motion.div>
-          <Car size={140} className="absolute -right-8 -bottom-8 text-black/5 rotate-12" />
+          <Car size={80} className="absolute -right-4 -bottom-4 text-black/5 rotate-12" />
         </div>
 
         {/* Dynamic Content with AnimatePresence */}
