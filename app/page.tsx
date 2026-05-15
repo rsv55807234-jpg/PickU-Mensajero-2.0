@@ -676,33 +676,70 @@ export default function PickUMensajeroApp() {
         {mensajeroTab === 'billetera' && (
           <div className="space-y-6">
             <h4 className="text-[10px] font-black uppercase text-neutral-400 tracking-[0.2em] italic mb-2">Mi Billetera</h4>
-            <div className="bg-neutral-900 p-8 rounded-[2.5rem] text-white flex flex-col gap-6 shadow-2xl relative overflow-hidden">
+            <div className="bg-neutral-900 p-8 rounded-[2.5rem] text-white flex flex-col gap-2 shadow-2xl relative overflow-hidden">
                <div className="absolute -top-12 -right-12 w-48 h-48 bg-yellow-400 rounded-full blur-[80px] opacity-20"></div>
-               <div>
+               <div className="relative z-10">
                   <p className="text-[10px] font-black uppercase text-white/40 tracking-widest leading-none mb-2">Saldo Disponible</p>
-                  <p className="text-4xl font-black italic tracking-tighter">$148.20</p>
-               </div>
-               <div className="flex gap-3">
-                  <button className="flex-1 bg-white text-black py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-lg">Retirar</button>
-                  <button className="flex-1 bg-white/10 text-white py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest border border-white/10">Historial</button>
+                  <p className="text-4xl font-black italic tracking-tighter leading-none">$148.20</p>
                </div>
             </div>
 
             <div className="space-y-4">
-               <p className="text-[10px] font-black uppercase text-neutral-400 tracking-[0.2em] italic">Transacciones Recientes</p>
-               {[
-                 { id: 1, type: 'Viaje Completado', amount: '+$4.50', date: 'Hace 20 min' },
-                 { id: 2, type: 'Viaje Completado', amount: '+$3.20', date: 'Hace 1 hora' },
-                 { id: 3, type: 'Retiro de Saldo', amount: '-$50.00', date: 'Ayer' },
-               ].map((tx) => (
-                 <div key={tx.id} className="bg-white p-5 rounded-[2rem] flex items-center justify-between border border-neutral-100 shadow-sm">
-                   <div>
-                     <p className="text-xs font-black text-neutral-900">{tx.type}</p>
-                     <p className="text-[9px] text-neutral-400 font-bold uppercase tracking-tighter">{tx.date}</p>
-                   </div>
-                   <span className={`text-sm font-black italic tracking-tight ${tx.amount.startsWith('+') ? 'text-green-500' : 'text-red-500'}`}>{tx.amount}</span>
-                 </div>
-               ))}
+               <p className="text-[10px] font-black uppercase text-neutral-400 tracking-[0.2em] italic">Instrucciones de Recarga</p>
+               <div className="bg-yellow-400 p-6 rounded-[2rem] text-black shadow-md flex flex-col gap-3">
+                  <div className="flex items-center gap-3">
+                    <ShieldCheck size={18} />
+                    <p className="text-[10px] font-black uppercase tracking-widest leading-none">Datos de Transferencia</p>
+                  </div>
+                  <div className="space-y-2 pt-1">
+                    <div className="flex justify-between items-center border-b border-black/10 pb-2">
+                      <span className="text-[9px] font-bold uppercase opacity-60">Cuenta CUP</span>
+                      <span className="text-xs font-black tracking-tight">9204 1234 5678 9012</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-[9px] font-bold uppercase opacity-60">Teléfono Confirmación</span>
+                      <span className="text-xs font-black tracking-tight">+53 5123 4567</span>
+                    </div>
+                  </div>
+               </div>
+               <p className="text-[9px] font-black text-neutral-500 uppercase tracking-widest mt-3 px-2 italic leading-tight">
+                 * Realiza la recarga vía Transfermóvil y luego completa el formulario.
+               </p>
+
+               <p className="text-[10px] font-black uppercase text-neutral-400 tracking-[0.2em] italic mt-6">Formulario de Solicitud</p>
+               <div className="bg-white p-6 rounded-[2.5rem] border border-neutral-100 shadow-sm space-y-5">
+                  <div className="space-y-2">
+                    <label className="text-[9px] font-black uppercase text-neutral-400 tracking-widest ml-1">Monto Transferido (CUP)</label>
+                    <input 
+                      type="number" 
+                      placeholder="Ej: 500" 
+                      className="w-full bg-neutral-50 border-2 border-neutral-100 rounded-2xl p-4 text-xs font-bold outline-none focus:border-yellow-400 transition-all"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-[9px] font-black uppercase text-neutral-400 tracking-widest ml-1">Número de Teléfono Emisor</label>
+                    <input 
+                      type="tel" 
+                      placeholder="+53 5..." 
+                      className="w-full bg-neutral-50 border-2 border-neutral-100 rounded-2xl p-4 text-xs font-bold outline-none focus:border-yellow-400 transition-all"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-[9px] font-black uppercase text-neutral-400 tracking-widest ml-1">Captura de Transfermóvil</label>
+                    <div className="border-2 border-dashed border-neutral-100 rounded-3xl p-8 flex flex-col items-center gap-3 bg-neutral-50/50 cursor-pointer hover:bg-neutral-50 transition-colors">
+                      <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-sm">
+                        <MapPin size={18} className="text-neutral-300" />
+                      </div>
+                      <p className="text-[8px] font-black uppercase text-neutral-400 tracking-widest text-center">Adjuntar comprobante o arrastrar archivo</p>
+                    </div>
+                  </div>
+
+                  <button className="w-full bg-black text-white py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-lg hover:bg-neutral-900 transition-all transform active:scale-95">
+                    Solicitar Recarga
+                  </button>
+               </div>
             </div>
           </div>
         )}
