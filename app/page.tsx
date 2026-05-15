@@ -9,10 +9,10 @@ const MapComponent = dynamic(() => import('../components/MapComponent'), {
   ssr: false,
   loading: () => <div className="w-full h-full bg-neutral-200 animate-pulse flex items-center justify-center text-neutral-400 font-black italic">Cargando Mapa...</div>
 });
-import { Car, ChevronRight, UserPlus, LogIn, ShieldCheck, MapPin, Bike, User, Phone, Mail, Lock, ChevronLeft, Zap, Truck, LayoutDashboard, Map, Wallet } from 'lucide-react';
+import { Car, ChevronRight, UserPlus, LogIn, LogOut, ShieldCheck, MapPin, Bike, User, Phone, Mail, Lock, ChevronLeft, Zap, Truck, LayoutDashboard, Map, Wallet, Users, Settings, Activity, FileText, LayoutGrid, Trash2, PlusSquare, Eye, CreditCard, Percent } from 'lucide-react';
 import Link from 'next/link';
 
-type ViewState = 'login' | 'register_client' | 'register_mensajero' | 'client_dashboard' | 'mensajero_dashboard' | 'profile';
+type ViewState = 'login' | 'register_client' | 'register_mensajero' | 'client_dashboard' | 'mensajero_dashboard' | 'profile' | 'admin_dashboard';
 
 export default function PickUMensajeroApp() {
   const [view, setView] = useState<ViewState>('login');
@@ -33,6 +33,18 @@ export default function PickUMensajeroApp() {
   const [isOnline, setIsOnline] = useState(true);
   const [activeOrder, setActiveOrder] = useState<any>(null);
   const [mensajeroTab, setMensajeroTab] = useState<'dashboard' | 'mapa' | 'billetera' | 'perfil'>('dashboard');
+  const [userRole, setUserRole] = useState<'client' | 'mensajero' | 'admin'>('client');
+  const [adminTab, setAdminTab] = useState<'resumen' | 'clientes' | 'mensajeros' | 'recargas' | 'config'>('resumen');
+  const [systemConfig, setSystemConfig] = useState({
+    accountNumber: '1234-5678-9012-3456',
+    phoneNumber: '0414-1234567',
+    rates: {
+      bicycle: 0.50,
+      motorbike: 0.80,
+      tricycle: 1.20
+    },
+    commission: 15
+  });
 
   const availableOrders = [
     { id: 1, pickup: 'Calle 72 con Av. 15', destination: 'C.C. Sambil', distance: '3.2 km', price: '$4.50', time: '5 min ago' },
@@ -390,6 +402,313 @@ export default function PickUMensajeroApp() {
     </motion.div>
   );
 
+  const renderAdminDashboard = () => (
+    <motion.div 
+      key="admin_dashboard"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="flex-1 flex flex-col bg-neutral-50 overflow-hidden"
+    >
+      {/* Header Admin */}
+      <div className="bg-white border-b border-neutral-100 px-6 py-6 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-black rounded-xl flex items-center justify-center">
+            <LayoutGrid size={20} className="text-yellow-400" />
+          </div>
+          <div>
+            <h2 className="text-sm font-black uppercase tracking-tight italic">Panel Admin</h2>
+            <p className="text-[9px] text-neutral-400 font-bold uppercase tracking-widest">PickU Mensajero</p>
+          </div>
+        </div>
+        <button 
+          onClick={() => setView('profile')}
+          className="w-10 h-10 rounded-full border-2 border-neutral-100 overflow-hidden"
+        >
+          <img src={userProfile.photo} alt="Admin" className="w-full h-full object-cover" />
+        </button>
+      </div>
+
+      {/* Tabs Admin */}
+      <div className="flex px-4 py-2 gap-1 overflow-x-auto no-scrollbar bg-white border-b border-neutral-100">
+        {[
+          { id: 'resumen', label: 'Resumen', icon: Activity },
+          { id: 'clientes', label: 'Clientes', icon: Users },
+          { id: 'mensajeros', label: 'Mensajeros', icon: Bike },
+          { id: 'recargas', label: 'Recargas', icon: Wallet },
+          { id: 'config', label: 'Sistema', icon: Settings },
+        ].map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => setAdminTab(tab.id as any)}
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all whitespace-nowrap ${
+              adminTab === tab.id 
+                ? 'bg-black text-white shadow-lg' 
+                : 'text-neutral-400 hover:bg-neutral-50'
+            }`}
+          >
+            <tab.icon size={14} />
+            <span className="text-[10px] font-black uppercase tracking-widest">{tab.label}</span>
+          </button>
+        ))}
+      </div>
+
+      {/* Content Admin */}
+      <div className="flex-1 overflow-y-auto p-6 space-y-6">
+        {adminTab === 'resumen' && (
+          <>
+            <div className="grid grid-cols-3 gap-2 px-1">
+              <div className="bg-white p-4 rounded-[1.8rem] border border-neutral-100 shadow-sm flex flex-col gap-1">
+                <p className="text-[8px] font-black text-neutral-400 uppercase tracking-widest">Mensajeros</p>
+                <p className="text-xl font-black italic tracking-tighter">142</p>
+                <div className="flex items-center gap-1 text-green-500">
+                  <Activity size={8} />
+                  <span className="text-[8px] font-bold">+12</span>
+                </div>
+              </div>
+              <div className="bg-white p-4 rounded-[1.8rem] border border-neutral-100 shadow-sm flex flex-col gap-1">
+                <p className="text-[8px] font-black text-neutral-400 uppercase tracking-widest">Clientes</p>
+                <p className="text-xl font-black italic tracking-tighter">846</p>
+                <div className="flex items-center gap-1 text-neutral-300">
+                  <Activity size={8} />
+                  <span className="text-[8px] font-bold">+48</span>
+                </div>
+              </div>
+              <div className="bg-white p-4 rounded-[1.8rem] border border-neutral-100 shadow-sm flex flex-col gap-1">
+                <p className="text-[8px] font-black text-neutral-400 uppercase tracking-widest">Ingresos</p>
+                <p className="text-xl font-black italic tracking-tighter">$1.4k</p>
+                <div className="flex items-center gap-1 text-yellow-500">
+                  <Activity size={8} />
+                  <span className="text-[8px] font-bold">Hoy</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <h3 className="text-[10px] font-black uppercase text-neutral-400 tracking-widest flex items-center gap-2">
+                <FileText size={12} /> Recargas Pendientes
+              </h3>
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="bg-white p-5 rounded-[2.5rem] border border-neutral-100 shadow-sm flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className="w-10 h-10 bg-neutral-50 rounded-2xl flex items-center justify-center">
+                      <User size={18} className="text-neutral-300" />
+                    </div>
+                    <div>
+                      <p className="text-xs font-black text-neutral-900">Usuario #{1024 + i}</p>
+                      <p className="text-[9px] text-neutral-400 font-bold uppercase tracking-tight">CUP 5,000 • 12:4{i} PM</p>
+                    </div>
+                  </div>
+                  <button 
+                    onClick={() => setAdminTab('recargas')}
+                    className="w-8 h-8 bg-black text-white rounded-xl flex items-center justify-center hover:bg-neutral-800 transition-all"
+                  >
+                    <ChevronRight size={16} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+
+        {adminTab === 'clientes' && (
+          <div className="bg-white rounded-[2.5rem] border border-neutral-100 shadow-sm overflow-hidden">
+            <div className="p-6 border-b border-neutral-100 flex items-center justify-between">
+              <h3 className="text-[10px] font-black uppercase tracking-widest">Base de Clientes</h3>
+              <Activity size={16} className="text-neutral-200" />
+            </div>
+            <div className="divide-y divide-neutral-50">
+              {['Carlos Ruiz', 'Elena Sofia', 'Marcos V.'].map((user, i) => (
+                <div key={user} className="p-5 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-black text-white rounded-full flex items-center justify-center text-[10px] font-black">{user[0]}</div>
+                    <div>
+                      <p className="text-xs font-black text-neutral-900">{user}</p>
+                      <p className="text-[9px] text-neutral-400 font-bold uppercase tracking-tight">ID: #CL-{5000 + i}</p>
+                    </div>
+                  </div>
+                  <button className="p-3 text-red-400 hover:text-red-500 hover:bg-red-50 rounded-2xl transition-all">
+                    <Trash2 size={16} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {adminTab === 'mensajeros' && (
+          <div className="bg-white rounded-[2.5rem] border border-neutral-100 shadow-sm overflow-hidden">
+            <div className="p-6 border-b border-neutral-100 flex items-center justify-between">
+              <h3 className="text-[10px] font-black uppercase tracking-widest">Base de Mensajeros</h3>
+              <Bike size={16} className="text-yellow-400" />
+            </div>
+            <div className="divide-y divide-neutral-50">
+              {['Rafael Sanchez', 'Maria Luiza', 'Pedro Perez'].map((user, i) => (
+                <div key={user} className="p-5 flex flex-col gap-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-yellow-400 rounded-full flex items-center justify-center text-[10px] font-black">{user[0]}</div>
+                      <div>
+                        <p className="text-xs font-black text-neutral-900">{user}</p>
+                        <p className="text-[9px] text-neutral-400 font-bold uppercase tracking-tight">ID: #MS-{2000 + i}</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-[8px] font-black text-neutral-300 uppercase tracking-widest mb-0.5">Cartera</p>
+                      <p className="text-sm font-black italic text-green-600 tracking-tight">${(i * 15.5 + 4.2).toFixed(2)}</p>
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <button className="flex-1 bg-neutral-50 border border-neutral-100 py-3 rounded-2xl flex items-center justify-center gap-2 hover:bg-yellow-400 hover:border-yellow-400 transition-all group">
+                      <PlusSquare size={14} className="text-neutral-400 group-hover:text-black" />
+                      <span className="text-[9px] font-black uppercase tracking-widest text-neutral-400 group-hover:text-black">Recargar Fondo</span>
+                    </button>
+                    <button className="px-4 bg-red-50 border border-red-100 text-red-500 rounded-2xl flex items-center justify-center hover:bg-red-500 hover:text-white transition-all">
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {adminTab === 'recargas' && (
+          <div className="space-y-4">
+             <div className="bg-black p-6 rounded-[2.5rem] text-white shadow-xl relative overflow-hidden">
+                <div className="absolute -top-10 -right-10 w-40 h-40 bg-yellow-400 rounded-full blur-[70px] opacity-20"></div>
+                <p className="text-[9px] font-black uppercase text-white/40 tracking-widest mb-1 relative z-10">Billetera Sistema</p>
+                <p className="text-3xl font-black italic tracking-tighter relative z-10">$12,482.00</p>
+             </div>
+
+             <div className="bg-white p-6 rounded-[2.5rem] border border-neutral-100 shadow-sm space-y-6">
+                <div className="flex items-center gap-3">
+                  <Wallet size={18} className="text-yellow-500" />
+                  <h3 className="text-[10px] font-black uppercase tracking-widest">Cola de Validación</h3>
+                </div>
+                
+                <div className="space-y-4">
+                  {[1, 2].map((i) => (
+                    <div key={i} className="bg-neutral-50 p-5 rounded-[2rem] space-y-4 border border-neutral-100">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <p className="text-xs font-black">Transferencia #{4589 + i}</p>
+                          <p className="text-[9px] text-neutral-400 font-bold uppercase tracking-tight">CUP 1,200.00</p>
+                        </div>
+                        <span className="bg-yellow-100 text-yellow-600 px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest">Pendiente</span>
+                      </div>
+                      
+                      <button className="w-full bg-white border border-neutral-100 py-3 rounded-xl flex items-center justify-center gap-2 hover:bg-neutral-100 transition-all group">
+                        <Eye size={14} className="text-neutral-400 group-hover:text-black" />
+                        <span className="text-[9px] font-black uppercase tracking-widest text-neutral-400 group-hover:text-black">Ver Comprobante</span>
+                      </button>
+
+                      <div className="flex gap-2">
+                        <button className="flex-1 bg-white border border-neutral-200 py-3 rounded-xl font-black text-[9px] uppercase tracking-widest text-red-500 hover:bg-red-50 transition-colors">Rechazar</button>
+                        <button className="flex-2 bg-yellow-400 py-3 rounded-xl font-black text-[9px] uppercase tracking-widest text-black shadow-sm hover:bg-yellow-500 transition-colors">Aprobar Recarga</button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+             </div>
+          </div>
+        )}
+
+        {adminTab === 'config' && (
+          <div className="space-y-6">
+            <div className="bg-white p-6 rounded-[2.5rem] border border-neutral-100 shadow-sm space-y-6">
+              <div className="flex items-center gap-3">
+                <CreditCard size={18} className="text-blue-500" />
+                <h3 className="text-[10px] font-black uppercase tracking-widest">Información de Pago</h3>
+              </div>
+              <div className="space-y-4">
+                <div>
+                  <label className="text-[9px] font-black uppercase text-neutral-400 tracking-widest ml-2 mb-1 block">Número de Cuenta</label>
+                  <input 
+                    type="text" 
+                    value={systemConfig.accountNumber}
+                    onChange={(e) => setSystemConfig({...systemConfig, accountNumber: e.target.value})}
+                    className="w-full bg-neutral-50 px-5 py-4 rounded-2xl text-xs font-bold border border-neutral-100 focus:outline-none focus:border-yellow-400 transition-colors"
+                  />
+                </div>
+                <div>
+                  <label className="text-[9px] font-black uppercase text-neutral-400 tracking-widest ml-2 mb-1 block">Teléfono Móvil (Pago Móvil)</label>
+                  <input 
+                    type="text" 
+                    value={systemConfig.phoneNumber}
+                    onChange={(e) => setSystemConfig({...systemConfig, phoneNumber: e.target.value})}
+                    className="w-full bg-neutral-50 px-5 py-4 rounded-2xl text-xs font-bold border border-neutral-100 focus:outline-none focus:border-yellow-400 transition-colors"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white p-6 rounded-[2.5rem] border border-neutral-100 shadow-sm space-y-6">
+              <div className="flex items-center gap-3">
+                <Truck size={18} className="text-yellow-500" />
+                <h3 className="text-[10px] font-black uppercase tracking-widest">Tarifas por KM</h3>
+              </div>
+              <div className="grid grid-cols-1 gap-4">
+                {[
+                  { id: 'bicycle', label: 'Bicicleta', icon: Bike },
+                  { id: 'motorbike', label: 'Motocicleta', icon: Zap },
+                  { id: 'tricycle', label: 'Triciclo', icon: Truck },
+                ].map((vehicle) => (
+                  <div key={vehicle.id} className="flex items-center gap-4 bg-neutral-50 p-4 rounded-2xl border border-neutral-100">
+                    <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center border border-neutral-100">
+                      <vehicle.icon size={18} className="text-neutral-400" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-[9px] font-black uppercase text-neutral-400 tracking-widest mb-1">{vehicle.label}</p>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-black italic">$</span>
+                        <input 
+                          type="number" 
+                          value={systemConfig.rates[vehicle.id as keyof typeof systemConfig.rates]}
+                          onChange={(e) => setSystemConfig({
+                            ...systemConfig, 
+                            rates: { ...systemConfig.rates, [vehicle.id]: parseFloat(e.target.value) }
+                          })}
+                          className="bg-transparent text-xs font-black border-none focus:outline-none w-16"
+                          step="0.01"
+                        />
+                        <span className="text-[9px] font-bold text-neutral-400">/ KM</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="bg-black p-8 rounded-[2.5rem] shadow-xl space-y-6 relative overflow-hidden">
+              <div className="absolute top-0 right-0 p-8 opacity-10">
+                <Percent size={80} className="text-white" />
+              </div>
+              <div className="flex items-center gap-3 relative z-10">
+                <Percent size={18} className="text-yellow-400" />
+                <h3 className="text-[10px] font-black uppercase tracking-widest text-white/60">Comisión Plataforma</h3>
+              </div>
+              <div className="flex items-end gap-3 relative z-10">
+                <input 
+                  type="number" 
+                  value={systemConfig.commission}
+                  onChange={(e) => setSystemConfig({...systemConfig, commission: parseInt(e.target.value)})}
+                  className="bg-transparent text-5xl font-black italic text-white w-24 border-none focus:outline-none"
+                />
+                <span className="text-2xl font-black italic text-yellow-400 mb-2">%</span>
+              </div>
+              <p className="text-[9px] font-bold text-white/40 uppercase tracking-widest relative z-10">Descontado automáticamente por cada servicio</p>
+            </div>
+
+            <button className="w-full bg-yellow-400 py-5 rounded-[2rem] font-black text-[11px] uppercase tracking-[0.2em] shadow-lg shadow-yellow-400/20 active:scale-95 transition-transform">
+              Guardar Cambios del Sistema
+            </button>
+          </div>
+        )}
+      </div>
+    </motion.div>
+  );
+
   const renderProfile = () => (
     <motion.div 
       key="profile"
@@ -399,16 +718,16 @@ export default function PickUMensajeroApp() {
       className="flex-1 flex flex-col px-6 py-8 gap-6 overflow-y-auto"
     >
       <button 
-        onClick={() => setView('client_dashboard')}
+        onClick={() => setView(userRole === 'client' ? 'client_dashboard' : 'mensajero_dashboard')}
         className="flex items-center gap-2 text-neutral-400 hover:text-black transition-colors font-black text-[10px] uppercase tracking-widest self-start"
       >
-        <ChevronLeft size={16} /> Volver al Mapa
+        <ChevronLeft size={16} /> Volver al Dashboard
       </button>
 
       <div className="flex flex-col items-center gap-4 mt-4">
         {/* Profile Picture Section */}
         <div className="relative group">
-          <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-yellow-400 shadow-xl relative">
+          <div className="w-28 h-28 rounded-3xl overflow-hidden border-4 border-yellow-400 shadow-xl relative">
             <img 
               src={userProfile.photo} 
               alt="Profile" 
@@ -419,19 +738,51 @@ export default function PickUMensajeroApp() {
           <motion.button 
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
-            className="absolute bottom-1 right-1 bg-black text-yellow-400 p-2.5 rounded-full shadow-lg border-2 border-white"
+            className="absolute bottom-1 right-1 bg-black text-yellow-400 p-2 rounded-full shadow-lg border-2 border-white"
           >
-            <Zap size={16} className="fill-yellow-400" /> {/* Using Zap as a generic "edit/action" icon here, or Camera if available */}
+            <Zap size={14} className="fill-yellow-400" />
           </motion.button>
         </div>
         <div className="text-center">
           <h3 className="text-xl font-black text-neutral-900 tracking-tight">{userProfile.name}</h3>
-          <p className="text-[10px] text-neutral-400 font-bold uppercase tracking-[0.2em] italic">Cliente Premium</p>
+          <p className="text-[10px] text-neutral-400 font-bold uppercase tracking-[0.2em] italic">
+            {userRole === 'client' ? 'Cliente Premium' : 'Mensajero Verificado'}
+          </p>
         </div>
       </div>
 
-      <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-neutral-100 space-y-5">
+      {userRole === 'mensajero' && (
         <div className="space-y-4">
+           <h4 className="text-[10px] font-black uppercase text-neutral-400 tracking-[0.2em] italic ml-1">Mi Vehículo</h4>
+           <div className="bg-white p-6 rounded-[2.5rem] border border-neutral-100 shadow-sm space-y-4">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-yellow-400/10 rounded-2xl flex items-center justify-center text-yellow-600">
+                  <Bike size={24} />
+                </div>
+                <div>
+                  <p className="text-xs font-black text-neutral-900 italic">Moto Bera BR-150</p>
+                  <p className="text-[9px] text-neutral-400 font-bold uppercase tracking-tight">Estado: Verificado</p>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-3 gap-2">
+                <button className="py-3 rounded-2xl border-2 border-neutral-50 font-black text-[8px] text-neutral-400 hover:border-yellow-400 hover:text-black transition-all uppercase italic flex flex-col items-center gap-1">
+                  <Bike size={14} /> Bicicleta
+                </button>
+                <button className="py-3 rounded-2xl border-2 border-neutral-50 font-black text-[8px] text-neutral-400 hover:border-yellow-400 hover:text-black transition-all uppercase italic flex flex-col items-center gap-1 border-yellow-400 text-black">
+                  <Zap size={14} /> Moto
+                </button>
+                <button className="py-3 rounded-2xl border-2 border-neutral-50 font-black text-[8px] text-neutral-400 hover:border-yellow-400 hover:text-black transition-all uppercase italic flex flex-col items-center gap-1">
+                  <Truck size={14} /> Triciclo
+                </button>
+              </div>
+           </div>
+        </div>
+      )}
+
+      <div className="bg-white p-6 rounded-[2.5rem] shadow-sm border border-neutral-100 space-y-5">
+        <div className="space-y-4">
+           <h4 className="text-[10px] font-black uppercase text-neutral-400 tracking-[0.2em] italic ml-1">Configuración de Cuenta</h4>
           <div className="space-y-1">
             <label className="text-[10px] font-black uppercase text-neutral-300 ml-1 tracking-widest">Nombre Completo</label>
             <div className="relative">
@@ -482,15 +833,10 @@ export default function PickUMensajeroApp() {
         </div>
       </div>
 
-      {/* Password Change Section */}
-      <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-neutral-100 space-y-5">
-        <div className="space-y-1">
-          <h4 className="text-xs font-black text-neutral-900 uppercase tracking-widest ml-1">Seguridad</h4>
-          <p className="text-[9px] text-neutral-400 font-bold uppercase tracking-tighter ml-1">Actualiza tu contraseña de acceso</p>
-        </div>
-
+      <div className="bg-white p-6 rounded-[2.5rem] shadow-sm border border-neutral-100 space-y-5">
         <div className="space-y-4">
-          <div className="space-y-1">
+           <h4 className="text-[10px] font-black uppercase text-neutral-400 tracking-[0.2em] italic ml-1">Seguridad</h4>
+           <div className="space-y-1">
             <label className="text-[10px] font-black uppercase text-neutral-300 ml-1 tracking-widest">Contraseña Actual</label>
             <div className="relative">
               <Lock size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-300" />
@@ -508,7 +854,7 @@ export default function PickUMensajeroApp() {
               <ShieldCheck size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-300" />
               <input 
                 type="password" 
-                placeholder="Nueva Contraseña"
+                placeholder="Nueva contraseña"
                 className="w-full bg-neutral-50 border border-neutral-200 rounded-xl pl-12 pr-4 py-3 text-sm font-bold text-neutral-900 focus:ring-2 focus:ring-yellow-400 outline-none transition-all"
               />
             </div>
@@ -518,20 +864,19 @@ export default function PickUMensajeroApp() {
         <div className="pt-2">
           <motion.button 
             whileTap={{ scale: 0.98 }}
-            className="w-full bg-neutral-100 text-black py-4 rounded-2xl font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-yellow-400 transition-colors"
+            className="w-full bg-neutral-100 text-black py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-yellow-400 transition-colors"
           >
             Actualizar Contraseña
           </motion.button>
         </div>
       </div>
-
-      <motion.button 
-        whileTap={{ scale: 0.98 }}
+      
+      <button 
         onClick={() => setView('login')}
-        className="mt-4 text-[10px] font-black text-red-400 uppercase tracking-widest hover:text-red-600 transition-colors"
+        className="w-full py-8 text-[10px] font-black uppercase tracking-[0.2em] text-red-500 border-t border-neutral-100 flex items-center justify-center gap-2"
       >
-        Cerrar Sesión
-      </motion.button>
+        <LogOut size={16} /> Cerrar Sesión
+      </button>
     </motion.div>
   );
 
@@ -826,7 +1171,10 @@ export default function PickUMensajeroApp() {
 
           <motion.button 
             whileTap={{ scale: 0.98 }}
-            onClick={() => setView('client_dashboard')}
+            onClick={() => {
+              setUserRole('client');
+              setView('client_dashboard');
+            }}
             className="w-full bg-black text-white py-4 rounded-2xl font-bold text-sm shadow-lg flex items-center justify-center gap-2 mt-2 hover:bg-neutral-800 transition-colors"
           >
             <LogIn size={18} /> Entrar
@@ -834,10 +1182,24 @@ export default function PickUMensajeroApp() {
           
           <motion.button 
             whileTap={{ scale: 0.98 }}
-            onClick={() => setView('mensajero_dashboard')}
+            onClick={() => {
+              setUserRole('mensajero');
+              setView('mensajero_dashboard');
+            }}
             className="w-full bg-yellow-400 text-black py-4 rounded-2xl font-bold text-sm shadow-lg flex items-center justify-center gap-2 mt-2 hover:bg-yellow-500 transition-colors"
           >
             <Car size={18} /> Entrar como Mensajero
+          </motion.button>
+
+          <motion.button 
+            whileTap={{ scale: 0.98 }}
+            onClick={() => {
+              setUserRole('admin');
+              setView('admin_dashboard');
+            }}
+            className="w-full bg-neutral-100 text-black py-4 rounded-2xl font-bold text-sm shadow-md flex items-center justify-center gap-2 mt-2 hover:bg-neutral-200 transition-colors"
+          >
+            <LayoutGrid size={18} /> Módulo Administración
           </motion.button>
           
           <div className="text-center">
@@ -1017,7 +1379,7 @@ export default function PickUMensajeroApp() {
       <div className="w-full max-w-[430px] h-full md:h-[92%] md:max-h-[850px] bg-neutral-50 md:rounded-[3rem] shadow-2xl overflow-hidden relative flex flex-col border-x border-neutral-200">
         
         {/* Brand Header - Minimal for App Feel - Hidden in Dashboards */}
-        {(view !== 'client_dashboard' && view !== 'mensajero_dashboard') && (
+        {(view !== 'client_dashboard' && view !== 'mensajero_dashboard' && view !== 'admin_dashboard') && (
           <div className="bg-yellow-400 px-6 pb-6 pt-10 rounded-b-[2rem] shadow-md relative overflow-hidden shrink-0">
             <motion.div 
               initial={{ opacity: 0, y: 10 }}
@@ -1045,6 +1407,7 @@ export default function PickUMensajeroApp() {
           {view === 'client_dashboard' && renderClientDashboard()}
           {view === 'mensajero_dashboard' && renderMensajeroDashboard()}
           {view === 'profile' && renderProfile()}
+          {view === 'admin_dashboard' && renderAdminDashboard()}
         </AnimatePresence>
 
         {/* TOP LEVEL OVERLAY FOR MAP SELECTION - GUARANTEES INTERACTIVITY */}
