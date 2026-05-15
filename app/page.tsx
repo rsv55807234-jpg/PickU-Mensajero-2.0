@@ -76,31 +76,38 @@ export default function PickUMensajeroApp() {
         
         {selectingMode && (
           <div className="absolute inset-0 z-50 pointer-events-none flex flex-col items-center">
-            {/* Cancel Button during selection */}
-            <div className="absolute top-32 pointer-events-auto">
+            {/* Top Control Bar during selection */}
+            <div className="w-full px-6 pt-6 flex flex-col items-center gap-3 pointer-events-none">
               <motion.button 
                 initial={{ y: -20, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 onClick={() => setSelectingMode(null)}
-                className="bg-black text-white px-6 py-3 rounded-full shadow-2xl flex items-center gap-2 border-2 border-yellow-400 font-black text-xs uppercase tracking-widest"
+                className="bg-black text-white px-6 py-3 rounded-full shadow-2xl flex items-center gap-2 border-2 border-yellow-400 font-black text-[10px] uppercase tracking-widest pointer-events-auto"
               >
-                <ChevronLeft size={16} className="text-yellow-400" /> Cancelar Selección
+                <ChevronLeft size={16} className="text-yellow-400" /> Cancelar
               </motion.button>
+              
+              <motion.div 
+                initial={{ y: -10, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                className="bg-yellow-400 text-black px-5 py-2.5 rounded-2xl shadow-xl flex items-center gap-3 border border-black/10"
+              >
+                <div className="w-2 h-2 bg-black rounded-full animate-pulse"></div>
+                <span className="font-black text-[10px] uppercase tracking-widest">
+                  Toca el mapa para fijar {selectingMode === 'pickup' ? 'recogida' : 'destino'}
+                </span>
+              </motion.div>
             </div>
 
+            {/* Central Crosshair / Pin Indicator */}
             <div className="flex-1 flex items-center justify-center">
-              <div className="bg-black/80 backdrop-blur-sm text-white px-6 py-3 rounded-2xl shadow-2xl flex items-center gap-3 border border-white/20">
-                <div className="w-2 h-2 bg-yellow-400 rounded-full animate-ping"></div>
-                <span className="font-black text-xs uppercase tracking-widest">
-                  Toca el mapa para fijar {selectingMode === 'pickup' ? 'la recogida' : 'el destino'}
-                </span>
-              </div>
               <motion.div 
                 animate={{ y: [0, -10, 0] }}
                 transition={{ repeat: Infinity, duration: 1.5 }}
-                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-[120%]"
+                className="relative"
               >
-                <MapPin size={40} className={selectingMode === 'pickup' ? 'text-yellow-400' : 'text-black'} />
+                <MapPin size={48} className={selectingMode === 'pickup' ? 'text-yellow-500 fill-black/10' : 'text-black/80'} />
+                <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-1.5 h-1.5 bg-black rounded-full border border-white shadow-sm"></div>
               </motion.div>
             </div>
           </div>
