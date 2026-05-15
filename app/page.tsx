@@ -75,20 +75,34 @@ export default function PickUMensajeroApp() {
         />
         
         {selectingMode && (
-          <div className="absolute inset-0 z-50 flex items-center justify-center pointer-events-none">
-            <div className="bg-black/80 backdrop-blur-sm text-white px-6 py-3 rounded-2xl shadow-2xl flex items-center gap-3 border border-white/20">
-              <div className="w-2 h-2 bg-yellow-400 rounded-full animate-ping"></div>
-              <span className="font-black text-xs uppercase tracking-widest">
-                Toca el mapa para fijar {selectingMode === 'pickup' ? 'la recogida' : 'el destino'}
-              </span>
+          <div className="absolute inset-0 z-50 pointer-events-none flex flex-col items-center">
+            {/* Cancel Button during selection */}
+            <div className="absolute top-32 pointer-events-auto">
+              <motion.button 
+                initial={{ y: -20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                onClick={() => setSelectingMode(null)}
+                className="bg-black text-white px-6 py-3 rounded-full shadow-2xl flex items-center gap-2 border-2 border-yellow-400 font-black text-xs uppercase tracking-widest"
+              >
+                <ChevronLeft size={16} className="text-yellow-400" /> Cancelar Selección
+              </motion.button>
             </div>
-            <motion.div 
-              animate={{ y: [0, -10, 0] }}
-              transition={{ repeat: Infinity, duration: 1.5 }}
-              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-[120%]"
-            >
-              <MapPin size={40} className={selectingMode === 'pickup' ? 'text-yellow-400' : 'text-black'} />
-            </motion.div>
+
+            <div className="flex-1 flex items-center justify-center">
+              <div className="bg-black/80 backdrop-blur-sm text-white px-6 py-3 rounded-2xl shadow-2xl flex items-center gap-3 border border-white/20">
+                <div className="w-2 h-2 bg-yellow-400 rounded-full animate-ping"></div>
+                <span className="font-black text-xs uppercase tracking-widest">
+                  Toca el mapa para fijar {selectingMode === 'pickup' ? 'la recogida' : 'el destino'}
+                </span>
+              </div>
+              <motion.div 
+                animate={{ y: [0, -10, 0] }}
+                transition={{ repeat: Infinity, duration: 1.5 }}
+                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-[120%]"
+              >
+                <MapPin size={40} className={selectingMode === 'pickup' ? 'text-yellow-400' : 'text-black'} />
+              </motion.div>
+            </div>
           </div>
         )}
         
@@ -150,26 +164,29 @@ export default function PickUMensajeroApp() {
         {bookingStep === 'search' && (
           <motion.div 
             initial={{ y: 400 }}
-            animate={{ y: 0 }}
+            animate={{ y: selectingMode ? 1000 : 0 }}
+            transition={{ type: 'spring', damping: 30, stiffness: 150 }}
             exit={{ y: 400 }}
             className="absolute bottom-0 left-0 right-0 z-40 flex flex-col"
           >
             {/* PESTAÑA FÍSICA PARA REGRESAR - CLARAMENTE VISIBLE SOBRE EL FORMULARIO */}
-            <div className="flex justify-start px-10">
-              <motion.button 
-                whileTap={{ scale: 0.95 }}
-                onClick={() => setBookingStep('home')}
-                className="bg-black text-white px-6 py-4 rounded-t-3xl flex items-center gap-3 shadow-2xl border-t border-x border-white/20 relative z-50 mb-[-2px]"
-              >
-                <div className="bg-yellow-400 p-1 rounded-lg">
-                  <ChevronLeft size={18} className="text-black stroke-[3px]" />
-                </div>
-                <span className="font-black text-[12px] uppercase tracking-widest italic">Regresar al Mapa</span>
-              </motion.button>
-            </div>
+            {!selectingMode && (
+              <div className="flex justify-start px-10">
+                <motion.button 
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => setBookingStep('home')}
+                  className="bg-black text-white px-6 py-4 rounded-t-3xl flex items-center gap-3 shadow-2xl border-t border-x border-white/20 relative z-50 mb-[-2px]"
+                >
+                  <div className="bg-yellow-400 p-1 rounded-lg">
+                    <ChevronLeft size={18} className="text-black stroke-[3px]" />
+                  </div>
+                  <span className="font-black text-[12px] uppercase tracking-widest italic">Regresar al Mapa</span>
+                </motion.button>
+              </div>
+            )}
 
-            {/* CUERPO DEL FORMULARIO CON BORDES REDONDEADOS PRONUNCIADOS */}
-            <div className="bg-white rounded-t-[3.5rem] shadow-[0_-25px_60px_-15px_rgba(0,0,0,0.3)] p-8 flex flex-col gap-6 min-h-[60%] overflow-y-auto max-h-[80vh]">
+            {/* CUERPO DEL FORMULARIO */}
+            <div className={`bg-white rounded-t-[3.5rem] shadow-[0_-25px_60px_-15px_rgba(0,0,0,0.3)] p-8 flex flex-col gap-6 min-h-[60%] overflow-y-auto max-h-[80vh] ${selectingMode ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
               {/* Indicador de arrastre */}
               <div className="w-16 h-1.5 bg-neutral-100 rounded-full mx-auto mb-4"></div>
               
